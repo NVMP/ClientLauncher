@@ -1,2 +1,2 @@
-# GameInstaller
-The source code of the installer for NV:MP
+# ClientLauncher
+The source code of the launcher for NV:MP
