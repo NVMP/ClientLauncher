@@ -1,0 +1,241 @@
+﻿<Window x:Class="ClientLauncher.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ClientLauncher"
+        mc:Ignorable="d"
+        Title="New Vegas: Multiplayer" Height="670" Width="1080" WindowStartupLocation="CenterScreen" ResizeMode="CanMinimize" Icon="/Res/nvmp-logo-32x32.png">
+
+    <Window.Resources>
+
+        <Style x:Key="ButtonGrey">
+            <Setter Property="Control.Background" Value="#FF212121"/>
+            <Setter Property="Control.Foreground" Value="White"/>
+            <Setter Property="Control.BorderBrush" Value="#FF323232"/>
+
+            <Setter Property="Control.Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+
+                        <Border Background="{TemplateBinding Control.Background}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+
+            <Style.Triggers>
+                <Trigger Property="Control.IsMouseOver" Value="True">
+                    <Setter Property="Control.Background" Value="#FF515151"/>
+                </Trigger>
+                <Trigger Property="Control.IsEnabled" Value="False">
+                    <Setter Property="Control.Foreground" Value="#FF515151"/>
+                    <Setter Property="Control.Background" Value="#FF2B2B2B"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="ButtonGreen">
+            <Setter Property="Control.Background" Value="#FF416434"/>
+            <Setter Property="Control.Foreground" Value="White"/>
+            <Setter Property="Control.BorderBrush" Value="#FF323232"/>
+            <!-- UseLayoutRounding="False" VerticalContentAlignment="Center" Height="47" VerticalAlignment="Bottom" Margin="10,0,156.392,10"  FontSize="18.667" -->
+            <Setter Property="Control.UseLayoutRounding" Value="False"/>
+            <Setter Property="Control.VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Control.Height" Value="47"/>
+            <Setter Property="Control.VerticalAlignment" Value="Bottom"/>
+            <Setter Property="Control.Margin" Value="10,0,156.392,10"/>
+            <Setter Property="Control.FontSize" Value="18.667"/>
+
+            <Setter Property="Control.Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+
+                        <Border Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+
+            <Style.Triggers>
+                <Trigger Property="Control.IsMouseOver" Value="True">
+                    <Setter Property="Control.Background" Value="#FF618D51"/>
+                </Trigger>
+                <Trigger Property="Control.IsEnabled" Value="False">
+                    <Setter Property="Control.Background" Value="#FF41513C"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <SolidColorBrush x:Key="TransparentBlack" Color="#000" Opacity="8.0"/>
+
+        <GradientStopCollection  x:Key="PanelGradient">
+            <GradientStop Color="#000000" Offset="0" />
+            <GradientStop Color="#111" Offset="1" />
+        </GradientStopCollection>
+
+        <Style x:Key="placeHolder" TargetType="{x:Type TextBox}" BasedOn="{StaticResource {x:Type TextBox}}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type TextBox}">
+                        <Grid>
+                            <TextBox Text="{Binding Path=Text,
+                                                RelativeSource={RelativeSource TemplatedParent}, 
+                                                Mode=TwoWay,
+                                                UpdateSourceTrigger=PropertyChanged}"
+                                 x:Name="textSource" 
+                                 Background="Transparent" 
+                                 Panel.ZIndex="2" />
+                            <TextBox Text="{TemplateBinding Tag}" Background="{TemplateBinding Background}" Panel.ZIndex="1">
+                                <TextBox.Style>
+                                    <Style TargetType="{x:Type TextBox}">
+                                        <Setter Property="Foreground" Value="Transparent"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding Path=Text, Source={x:Reference textSource}}" Value="">
+                                                <Setter Property="Foreground" Value="LightGray"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBox.Style>
+                            </TextBox>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ServerHeader">
+            <Setter Property="Control.IsEnabled" Value="False" />
+            <Setter Property="Control.IsHitTestVisible" Value="False" />
+        </Style>
+
+        <Style x:Key="ServerItem">
+            <Setter Property="Control.Background" Value="#5F000000"/>
+            <Setter Property="Control.Height" Value="Auto"/>
+            <Setter Property="Control.VerticalAlignment" Value="Top"/>
+            <Setter Property="Control.Padding" Value="10px"/>
+        </Style>
+
+        <!-- template -->
+        <ControlTemplate x:Key="ServerRow" TargetType="ListBoxItem">
+        </ControlTemplate>
+    </Window.Resources>
+
+    <Grid Width="1073">
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid.Background>
+            <ImageBrush x:Name="BackgroundPanel" ImageSource="/Res/granda1.png" Stretch="UniformToFill"/>
+        </Grid.Background>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="0*" />
+            <ColumnDefinition Width="0*"/>
+            <ColumnDefinition Width="749*"/>
+            <ColumnDefinition Width="326*"/>
+        </Grid.ColumnDefinitions>
+
+        <Border x:Name="MessageBorder" Margin="61,0,328,32" VerticalAlignment="Bottom" Grid.Column="2" Height="24" Visibility="Hidden">
+
+            <Border.Background>
+                <LinearGradientBrush EndPoint="0,0" StartPoint="1,0" Opacity="0.8" GradientStops="{StaticResource PanelGradient}" />
+            </Border.Background>
+
+
+            <TextBlock x:Name="MessageText_Control" Margin="4,4.667,0,0" TextWrapping="Wrap" Text="" Height="20" Foreground="#FFB23737" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        </Border>
+
+        <Border x:Name="NewsFeedBorder"  Grid.Column="2" Margin="61,136,61,61" Grid.ColumnSpan="2">
+
+            <Border.Background>
+                <LinearGradientBrush EndPoint="0,0" StartPoint="1,0" Opacity="0.8" GradientStops="{StaticResource PanelGradient}" />
+            </Border.Background>
+
+            <Grid>
+                <Label x:Name="BrowserTitle" Content="Public Server Browser" Height="37" Margin="17,10,122,0" VerticalAlignment="Top" FontSize="20" Foreground="White"/>
+
+                <Grid Style="{DynamicResource ServerHeader}" VerticalAlignment="Top" Margin="17,47,17,0" Height="27">
+                    <Label Padding="5px" Background="Transparent" Foreground="White" HorizontalAlignment="Left" Width="53.62">Ping</Label>
+                    <Label Padding="5px" Background="Transparent" Foreground="White" HorizontalAlignment="Left" Width="53.62" Margin="53.62,0,0,0">Players</Label>
+                    <Label Padding="5px" Background="Transparent" Foreground="White" Margin="107.24,0,421,0">Name</Label>
+                </Grid>
+
+                <ScrollViewer Margin="10,79,10,41" VerticalScrollBarVisibility="Auto">
+                    <!-- implementation -->
+                    <ListBox x:Name="ServerList"
+                             SelectionChanged="ServerItem_Selected"
+                             MouseDoubleClick="Play_Click"
+                             Background="{x:Null}"
+                             BorderBrush="{x:Null}"
+                             VerticalAlignment="Top"
+                             HorizontalContentAlignment="Stretch"
+                             ScrollViewer.CanContentScroll="True">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Height="Auto" Margin="0px 10px 0px 10px">
+                                    <Label Background="Transparent" Foreground="White" HorizontalAlignment="Left" Content="{Binding DisplayPing}"/>
+                                    <Label Background="Transparent" Foreground="White" HorizontalAlignment="Left" Margin="53.62,0,0,0" Content="{Binding DisplayPlayers}"/>
+                                    <Grid Margin="107.24,0,0,0" >
+                                        <Label Background="Transparent" Foreground="White"  Margin="0,0,0,0" 
+                                           Content="{Binding Name}"
+                                           FontWeight="Bold"
+                                           />
+                                        <Label Background="Transparent" Foreground="White" Padding="5,25,5,5" 
+                                           Content="{Binding Description}"
+                                           />
+                                    </Grid>
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Right" Background="Transparent" Width="52.259">
+                                        <!-- authenticators -->
+                                        <Image Visibility="{Binding DiscordResourceVisibility}"
+                                               Source="/Res/discord.png" RenderOptions.BitmapScalingMode="HighQuality" Width="25" Height="25" HorizontalAlignment="Left"
+                                               ToolTip="Discord authentication required"/>
+                                        <Image Visibility="{Binding OtherAuthenticatorVisibility}"
+                                               Source="/Res/shield.png" RenderOptions.BitmapScalingMode="HighQuality" Width="25" Height="25" HorizontalAlignment="Left"
+                                               ToolTip="Authentication required"/>
+
+                                        <!-- state -->
+                                        <Image Visibility="{Binding StarredResourceVisibility}"
+                                               Source="{Binding DisplayStarResource}" Width="15" Height="15" HorizontalAlignment="Left"/>
+
+                                    </StackPanel>
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </ScrollViewer>
+                <Button x:Name="Play_Control" Click="Play_Click" Content="Join" UseLayoutRounding="False" VerticalContentAlignment="Center" Height="26" VerticalAlignment="Bottom" Margin="15.204,0,0,10"  FontSize="12" Style="{DynamicResource ButtonGreen}" HorizontalAlignment="Left" Width="159.608"/>
+                <Button x:Name="ManualJoin_Control" Click="ManualJoin_Click" Content="Connect via IP" UseLayoutRounding="False" VerticalContentAlignment="Center" Height="26" VerticalAlignment="Bottom" Margin="179.812,0,0,10"  FontSize="12" Style="{DynamicResource ButtonGrey}" HorizontalAlignment="Left" Width="98.166" RenderTransformOrigin="1.403,1.628"/>
+                <Button x:Name="Repair_Control" Click="Repair_Click" Content="Repair"  UseLayoutRounding="False" VerticalContentAlignment="Center" Height="26" VerticalAlignment="Bottom" Margin="389.812,0,0,10" HorizontalAlignment="Left" Width="69.188" Style="{DynamicResource ButtonGrey}" ToolTip="Repair will forcefully re-install the required files needed for NV:MP"/>
+                <Label x:Name="NoServersMessage" Content="No servers found" Height="37" Margin="380,90,413,0" VerticalAlignment="Top" Foreground="#FF999999" HorizontalAlignment="Center" Background="{x:Null}" Visibility="Hidden"/>
+                <Button x:Name="RepairSteam_Control" Click="SteamRepair_Click" Content="Validate Steam Integrity"  UseLayoutRounding="False" VerticalContentAlignment="Center" Height="26" VerticalAlignment="Bottom" Margin="464,0,0,10" HorizontalAlignment="Left" Width="135" Style="{DynamicResource ButtonGrey}" ToolTip="Will attempt at a Steam repair of Fallout: New Vegas" FontSize="10"/>
+                <PasswordBox x:Name="CustomToken"
+                             PasswordChanged="CustomToken_Changed"
+                             Margin="604,0,189,10"
+                             ToolTip="Username or token"
+                             Background="#FF323232"
+                             Foreground="White" BorderBrush="#FF323232" Height="26" VerticalAlignment="Bottom" VerticalContentAlignment="Center" Padding="3,0,0,0"
+                             />
+                <Button x:Name="CopyToken" Click="CopyToken_Click" Content="Copy"  UseLayoutRounding="False" VerticalContentAlignment="Center" Height="26" VerticalAlignment="Bottom" Margin="0,0,140.167,10" HorizontalAlignment="Right" Width="44" Style="{DynamicResource ButtonGrey}"
+                        ToolTip="Copy your private token to clipboard"/>
+                <Label x:Name="LoadingServersMessage" Content="Loading servers..." Height="37" Margin="419.576,90,452.576,0" VerticalAlignment="Top" Foreground="#FF999999" HorizontalAlignment="Center" Background="{x:Null}"/>
+                <Button x:Name="OverrideGameDir" Click="OverrideGameDir_Click" Content="Edit Game Directory"  UseLayoutRounding="False" VerticalContentAlignment="Center" Height="26" VerticalAlignment="Bottom" Margin="0,0,10,10" HorizontalAlignment="Right" Width="125.167" Style="{DynamicResource ButtonGrey}"
+                        ToolTip="Override the game folder used to play NV:MP from"/>
+            </Grid>
+
+        </Border>
+        <Border x:Name="Logo" BorderBrush="Black" BorderThickness="0" Grid.ColumnSpan="3" Margin="61,58,247.547,0" Height="73" VerticalAlignment="Top">
+            <Border.Background>
+                <ImageBrush ImageSource="/Res/nvmp-sex.png" Stretch="UniformToFill"/>
+            </Border.Background>
+        </Border>
+        <Label x:Name="VersionLabel" Grid.ColumnSpan="3" Content="Unknown Version" HorizontalAlignment="Left" VerticalAlignment="Top" Width="221.556" Background="{x:Null}" Foreground="White" Margin="38,10,0,0"/>
+        <Button Click="About_Click" HorizontalAlignment="Left" VerticalAlignment="Top" Width="27" Grid.ColumnSpan="3" Margin="10,10,0,0" Background="{x:Null}" BorderBrush="{x:Null}" Height="27" Foreground="{x:Null}">
+            <Image x:Name="AboutButton" Source="/Res/info.png" Width="23" Height="23" ToolTip="About" />
+        </Button>
+    </Grid>
+</Window>

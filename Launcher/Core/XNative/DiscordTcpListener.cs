@@ -1,0 +1,135 @@
+﻿using System;
+using System.Diagnostics;
+using System.Net;
+using System.Text;
+using System.Threading;
+using System.Windows;
+
+namespace ClientLauncher.Core.XNative
+{
+    public class DiscordTcpListener
+    {
+        public static readonly int ClientDiscordAuthListener = 8085;
+        protected HttpListener InternalServer;
+        protected Thread InternalThread;
+
+        protected bool Running;
+
+        public class AuthorizationReceivedArgs : EventArgs
+        {
+            public HttpListenerResponse Response { get; set; }
+            public string ServerClientID { get; set; }
+            public string ServerAuthResponse { get; set; }
+        }
+
+        public delegate void AuthorizationReceivedEventHandler(object sender, AuthorizationReceivedArgs e);
+
+        public AuthorizationReceivedEventHandler DiscordAuthReceived;
+
+        public DiscordTcpListener()
+        {
+        }
+
+        public void AttemptServerCreation(int port)
+        {
+            Trace.WriteLine($"Trying port {port}");
+            InternalServer = new HttpListener();
+            InternalServer.Prefixes.Add($"http://localhost:{port}/");
+            InternalServer.Start();
+        }
+
+        protected void Receive()
+        {
+            while (Running)
+            {
+                try
+                {
+                    // Will wait here until we hear from a connection
+                    HttpListenerContext ctx = InternalServer.GetContext();
+
+                    // Peel out the requests and response objects
+                    HttpListenerRequest req = ctx.Request;
+                    HttpListenerResponse resp = ctx.Response;
+
+                    if (req.Url.AbsolutePath.StartsWith("/discord"))
+                    {
+                        var args = new AuthorizationReceivedArgs
+                        {
+                            Response = resp,
+                            ServerClientID = req.QueryString.Get("server"),
+                            ServerAuthResponse = req.QueryString.Get("response")
+                        };
+
+                        if (args.ServerAuthResponse != null && 
+                            args.ServerClientID != null &&
+                            DiscordAuthReceived != null)
+                        {
+                            DiscordAuthReceived.Invoke(null, args);
+                        }
+                    }
+
+                    // Write the response info
+                    byte[] data = Encoding.UTF8.GetBytes("<!doctype html><head><title>NV:MP</title></head><body><script>setTimeout(()=>window.close(), 250);window.history.replaceState({}, document.title, \"/\");</script><div><b>NV:MP Launcher</b></div>You can close this window and return to the launcher!</body>");
+                    resp.ContentType = "text/html";
+                    resp.ContentEncoding = Encoding.UTF8;
+                    resp.ContentLength64 = data.LongLength;
+
+                    // Write out to the response stream (asynchronously), then close it
+                    resp.OutputStream.Write(data, 0, data.Length);
+                    resp.Close();
+                }
+                catch (Exception)
+                {
+
+                }
+            }
+        }
+
+        public void Initialize()
+        {
+            int attempts = 5;
+            var rand = new Random();
+            while (attempts > 0)
+            {
+                try
+                {
+                    AttemptServerCreation(ClientDiscordAuthListener);
+
+                    Running = true;
+                    InternalThread = new Thread(Receive);
+                    InternalThread.Start();
+                    break;
+                }
+                catch (Exception e)
+                {
+                    Trace.WriteLine("Localserver startup failure " + e.Message);
+                }
+
+                attempts--;
+            }
+
+            if (attempts == 0)
+            {
+                MessageBox.Show($"Could not start up the NV:MP Discord Tcp Listener, servers with Discord authentication may fail! Please make sure port {ClientDiscordAuthListener} is open!", "New Vegas: Multiplayer",
+                    MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+
+        public void Shutdown()
+        {
+            Running = false;
+
+            if (InternalServer != null)
+            {
+                InternalServer.Close();
+            }
+
+            if (InternalThread != null)
+            {
+                InternalThread.Abort();
+                InternalThread.Join();
+                InternalThread = null;
+            }
+        }
+    }
+}
