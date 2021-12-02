@@ -551,7 +551,7 @@ namespace ClientLauncher
                     dialog.SelectedPath = currentPath;
                 }
 
-                System.Windows.Forms.DialogResult result = dialog.ShowDialog();
+                dialog.ShowDialog();
                 if (dialog.SelectedPath != null)
                 {
                     StorageService.GamePathOverride = dialog.SelectedPath;

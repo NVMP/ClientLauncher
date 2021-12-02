@@ -11,7 +11,7 @@ namespace ClientLauncher
     // Finds the machine's Fallout: New Vegas storage
     // location. 
     //-------------------------------------------------
-    class FalloutFinder
+    public static class FalloutFinder
     {
         //-------------------------------------------------
         // Gets the Steam installation path.
