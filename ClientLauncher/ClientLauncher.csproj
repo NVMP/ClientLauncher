@@ -216,7 +216,7 @@
     <Compile Include="Core\FalloutFinder.cs" />
     <Compile Include="Core\Firewall.cs" />
     <Compile Include="Core\LocalStorage.cs" />
-    <Compile Include="Core\PresentationHelpers.cs" />
+    <Compile Include="Converters\BooleanToVisibilityConverter.cs" />
     <Page Include="Windows\About.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -371,6 +371,9 @@
       <Project>{14bf90d7-d969-4e14-a021-511fed0df423}</Project>
       <Name>XmlsPrebuildDefinitions</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Res\icon_clyde_white_RGB.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

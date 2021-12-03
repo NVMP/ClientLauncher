@@ -82,6 +82,20 @@ namespace ClientLauncher
 
         private ObservableCollection<DtoGameServer> ServerListCollection;
 
+        public bool IsServerAvailable
+        {
+            get
+            {
+                var falloutDir = FalloutFinder.GameDir(StorageService);
+                if (falloutDir != null)
+                {
+                    return File.Exists($"{falloutDir}\\{XNativeConfig.Exe_PrivateServer}");
+                }
+
+                return false;
+            }
+        }
+
         public MainWindow()
         {
             HasGamePatched = false;
@@ -123,12 +137,14 @@ namespace ClientLauncher
             InitializeComponent();
             LoadCustomBackground();
 
+            // Need to mark the dependency here
             VersionLabel.DataContext = ProgramVersion;
 
 #if !NEXUS_CANDIDATE
             // Patch before initialising components of the main window.
             PatchService = new GithubPatchService(this, falloutDir);
 #else
+#if !DEBUG
             // If we are out of sync with the Nexus candidate, throw up a warning overlay and prevent the player from 
             // connecting to servers. They will be incompatible. 
             if (ProgramVersion.IsOutOfDate)
@@ -138,6 +154,7 @@ namespace ClientLauncher
                 Close();
                 return;
             }
+#endif
 #endif
             DiscordAuthenticatorService = new DiscordAuthenticator(this, StorageService);
             
@@ -342,7 +359,7 @@ namespace ClientLauncher
             try
             {
                 var client = new RestClient(BroadcastServer);
-                var request = new RestRequest("/serverlist", Method.GET);
+                var request = new RestRequest($"/serverlist", Method.GET);
 
                 IRestResponse response = await client.ExecuteAsync(request);
 
@@ -530,6 +547,16 @@ namespace ClientLauncher
                 AboutWindowInstance.Closed += DialogBoxClosed;
                 AboutWindowInstance.ShowDialog();
             }
+        }
+
+        public void Discord_Click(object sender, RoutedEventArgs e)
+        {
+            Process.Start("https://nv-mp.com/discord");
+        }
+
+        public void Wiki_Click(object sender, RoutedEventArgs e)
+        {
+            Process.Start("https://wiki.nv-mp.com/");
         }
 
         private void DialogBoxClosed(object sender, EventArgs e)
@@ -777,7 +804,7 @@ namespace ClientLauncher
             //
             // Start the game
             //
-            Process game = new Process();
+            var game = new Process();
             game.StartInfo.FileName             = installation.NVMPExe;
             game.StartInfo.Arguments            = $"{server.IP} {server.Port} {installation.GameID} {HttpUtility.UrlEncode(token)} \"{modsList}\"";
             game.StartInfo.UseShellExecute      = true;
@@ -807,10 +834,13 @@ namespace ClientLauncher
         {
             if (ServerList.SelectedIndex == -1)
             {
+                Play_Control.IsEnabled = false;
                 return;
             }
 
             DtoGameServer server = ServerListCollection[ServerList.SelectedIndex];
+
+            Play_Control.IsEnabled = true;
 
             if (server.Authenticator != "" && server.Authenticator != "basic")
             {
@@ -952,6 +982,26 @@ namespace ClientLauncher
                     MessageText_Control.Text = errorMsg;
                 }
             });
+        }
+
+        private void Start_StoryServer_Click(object sender, RoutedEventArgs e)
+        {
+            if (!IsServerAvailable)
+            {
+                return;
+            }
+
+            string falloutDir = FalloutFinder.GameDir(StorageService);
+            if (falloutDir == null)
+            {
+                return;
+            }
+
+            var game = new Process();
+            game.StartInfo.FileName = $"{falloutDir}\\{XNativeConfig.Exe_PrivateServer}";
+            game.StartInfo.WorkingDirectory = falloutDir;
+            game.StartInfo.UseShellExecute = true;
+            game.Start();
         }
 
         private void ManualJoin_Click(object sender, RoutedEventArgs e)

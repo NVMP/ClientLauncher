@@ -5,10 +5,13 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:nexuscandidate="nexus-candidate-mode"
         xmlns:mainbuild="main-build-mode"
+        xmlns:converters="clr-namespace:ClientLauncher.Converters"
         mc:Ignorable="d mc nexuscandidate mainbuild"
+        DataContext="{Binding RelativeSource={RelativeSource Self}}"
         Title="New Vegas: Multiplayer" Height="670" Width="1080" WindowStartupLocation="CenterScreen" ResizeMode="CanMinimize" Icon="/Res/nvmp-logo-32x32.png">
 
     <Window.Resources>
+        <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
 
         <Style x:Key="ButtonGrey">
             <Setter Property="Control.Background" Value="#FF212121"/>
@@ -79,7 +82,21 @@
             <GradientStop Color="#111" Offset="1" />
         </GradientStopCollection>
 
-        <Style x:Key="placeHolder" TargetType="{x:Type TextBox}" BasedOn="{StaticResource {x:Type TextBox}}">
+        <Style x:Key="InfoButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid Background="{TemplateBinding Background}">
+                            <ContentPresenter />
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+
+        <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource {x:Type TextBox}}">
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type TextBox}">
@@ -209,8 +226,20 @@
                         </ListBox.ItemTemplate>
                     </ListBox>
                 </ScrollViewer>
-                <Button x:Name="Play_Control" Click="Play_Click" Content="Join" UseLayoutRounding="False" VerticalContentAlignment="Center" Height="26" VerticalAlignment="Bottom" Margin="15.204,0,0,10"  FontSize="12" Style="{DynamicResource ButtonGreen}" HorizontalAlignment="Left" Width="159.608"/>
-                <Button x:Name="ManualJoin_Control" Click="ManualJoin_Click" Content="Connect via IP" UseLayoutRounding="False" VerticalContentAlignment="Center" Height="26" VerticalAlignment="Bottom" Margin="179.812,0,0,10"  FontSize="12" Style="{DynamicResource ButtonGrey}" HorizontalAlignment="Left" Width="98.166" RenderTransformOrigin="1.403,1.628"/>
+                <Button x:Name="Play_Control" IsEnabled="False" Click="Play_Click" Content="Join" UseLayoutRounding="False" VerticalContentAlignment="Center" Height="26" VerticalAlignment="Bottom" Margin="15.204,0,0,10"  FontSize="12" Style="{DynamicResource ButtonGreen}" HorizontalAlignment="Left" Width="159.608"/>
+                <Button x:Name="ManualJoin_Control" Click="ManualJoin_Click" Content="Connect via IP" UseLayoutRounding="False" VerticalContentAlignment="Center" Height="26" VerticalAlignment="Bottom" Margin="179.812,0,0,10"  FontSize="12" Style="{DynamicResource ButtonGreen}" HorizontalAlignment="Left" Width="98.166" RenderTransformOrigin="1.403,1.628"/>
+                <Button x:Name="Start_StoryServer"
+                        Visibility="{Binding IsServerAvailable, Converter={StaticResource BooleanToVisibilityConverter}}"
+                        Click="Start_StoryServer_Click"
+                        Content="Launch Local Server"
+                        UseLayoutRounding="False"
+                        VerticalContentAlignment="Center" 
+                        Height="26" 
+                        VerticalAlignment="Bottom" 
+                        Margin="282.978,0,492,9.678" 
+                        FontSize="12"
+                        Style="{DynamicResource ButtonGrey}" >
+                </Button>
 
                 <mc:AlternateContent>
                     <mc:Choice Requires="mainbuild">
@@ -240,13 +269,24 @@
             </Border.Background>
         </Border>
         <Border>
-            <StackPanel Orientation="Horizontal" Margin="20,20,-320,583" Width="300">
+            <StackPanel Orientation="Horizontal" Margin="20,20,-1051,583">
                 <Button x:Name="AboutButton"
+                        Margin="0,0,10,0"
                         Click="About_Click"
                         Width="28"
                         ToolTip="About"
+                        Style="{DynamicResource InfoButton}"
                         Background="{x:Null}" BorderBrush="{x:Null}"  Foreground="{x:Null}">
                     <Image Source="/Res/info.png" Width="23" Height="23" />
+                </Button>
+                <Button x:Name="DiscordButton"
+                        Click="Discord_Click"
+                        Margin="0,0,10,0"
+                        Width="28"
+                        ToolTip="Join our Discord Server"
+                        Style="{DynamicResource InfoButton}"
+                        Background="{x:Null}" BorderBrush="{x:Null}"  Foreground="{x:Null}">
+                    <Image Source="/Res/icon_clyde_white_RGB.png" Width="23" Height="23" />
                 </Button>
                 <Label x:Name="VersionLabel"
                        Background="{x:Null}"
