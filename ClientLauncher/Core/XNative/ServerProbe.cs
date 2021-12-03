@@ -8,6 +8,10 @@ using System.Threading.Tasks;
 
 namespace ClientLauncher.Core.XNative
 {
+    /// <summary>
+    /// Establishes a small connection to the server to probe for mod information, player state, and general connectivity before
+    /// handing off to the main server socket.
+    /// </summary>
     public class ServerProbe
     {
         static readonly uint ConnectionProbeHeader = 0x8008A000; // keep in sync with xnative

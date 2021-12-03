@@ -4,13 +4,14 @@ using Microsoft.Win32;
 using System.Text.RegularExpressions;
 using System.IO;
 using ClientLauncher.Core;
+using System;
 
 namespace ClientLauncher
 {
-    //-------------------------------------------------
-    // Finds the machine's Fallout: New Vegas storage
-    // location. 
-    //-------------------------------------------------
+    /// <summary>
+    /// Finds the machine's Fallout: New Vegas storage
+    /// location. 
+    /// </summary>
     public static class FalloutFinder
     {
         //-------------------------------------------------
@@ -30,23 +31,28 @@ namespace ClientLauncher
         {
             List<string> folders = new List<string>();
 
-            string steamFolder = SteamFolder();
-            folders.Add(steamFolder);
-
-            string configFile = steamFolder + "\\config\\config.vdf";
-
-            Regex regex = new Regex("BaseInstallFolder[^\"]*\"\\s*\"([^\"]*)\"");
-            using (StreamReader reader = new StreamReader(configFile))
+            try
             {
-                string line;
-                while ((line = reader.ReadLine()) != null)
+                string steamFolder = SteamFolder();
+                folders.Add(steamFolder);
+
+                string configFile = steamFolder + "\\config\\config.vdf";
+
+                Regex regex = new Regex("BaseInstallFolder[^\"]*\"\\s*\"([^\"]*)\"");
+                using (StreamReader reader = new StreamReader(configFile))
                 {
-                    Match match = regex.Match(line);
-                    if (match.Success)
+                    string line;
+                    while ((line = reader.ReadLine()) != null)
                     {
-                        folders.Add(Regex.Unescape(match.Groups[1].Value));
+                        Match match = regex.Match(line);
+                        if (match.Success)
+                        {
+                            folders.Add(Regex.Unescape(match.Groups[1].Value));
+                        }
                     }
                 }
+            } catch (Exception)
+            {
             }
 
             return folders;
@@ -58,8 +64,6 @@ namespace ClientLauncher
         //-------------------------------------------------
         public static string GameDir(LocalStorage storage)
         {
-            var appFolders = LibraryFolders().Select(x => x + "\\SteamApps\\common");
-
             if (storage.GamePathOverride != null)
             {
                 if (Directory.Exists(storage.GamePathOverride))
@@ -68,28 +72,7 @@ namespace ClientLauncher
                 }
             }
 
-            foreach (var folder in appFolders)
-            {
-                try
-                {
-                    var matches = Directory.GetDirectories(folder, "Fallout New Vegas");
-                    if (matches.Length >= 1)
-                    {
-                        return matches[0];
-                    }
-
-                    matches = Directory.GetDirectories(folder, "Fallout New Vegas enplczru");
-                    if (matches.Length >= 1)
-                        return matches[0];
-                }
-                catch (DirectoryNotFoundException)
-                {
-                    //continue;
-                }
-
-            }
-
-            return null;
+            return Directory.GetCurrentDirectory();
         }
     }
 }

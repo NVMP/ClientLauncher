@@ -3,8 +3,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:ClientLauncher"
-        mc:Ignorable="d"
+        xmlns:nexuscandidate="nexus-candidate-mode"
+        xmlns:mainbuild="main-build-mode"
+        mc:Ignorable="d mc nexuscandidate mainbuild"
         Title="New Vegas: Multiplayer" Height="670" Width="1080" WindowStartupLocation="CenterScreen" ResizeMode="CanMinimize" Icon="/Res/nvmp-logo-32x32.png">
 
     <Window.Resources>
@@ -210,7 +211,12 @@
                 </ScrollViewer>
                 <Button x:Name="Play_Control" Click="Play_Click" Content="Join" UseLayoutRounding="False" VerticalContentAlignment="Center" Height="26" VerticalAlignment="Bottom" Margin="15.204,0,0,10"  FontSize="12" Style="{DynamicResource ButtonGreen}" HorizontalAlignment="Left" Width="159.608"/>
                 <Button x:Name="ManualJoin_Control" Click="ManualJoin_Click" Content="Connect via IP" UseLayoutRounding="False" VerticalContentAlignment="Center" Height="26" VerticalAlignment="Bottom" Margin="179.812,0,0,10"  FontSize="12" Style="{DynamicResource ButtonGrey}" HorizontalAlignment="Left" Width="98.166" RenderTransformOrigin="1.403,1.628"/>
-                <Button x:Name="Repair_Control" Click="Repair_Click" Content="Repair"  UseLayoutRounding="False" VerticalContentAlignment="Center" Height="26" VerticalAlignment="Bottom" Margin="389.812,0,0,10" HorizontalAlignment="Left" Width="69.188" Style="{DynamicResource ButtonGrey}" ToolTip="Repair will forcefully re-install the required files needed for NV:MP"/>
+
+                <mc:AlternateContent>
+                    <mc:Choice Requires="mainbuild">
+                        <Button x:Name="Repair_Control" Click="Repair_Click" Content="Repair"  UseLayoutRounding="False" VerticalContentAlignment="Center" Height="26" VerticalAlignment="Bottom" Margin="389.812,0,0,10" HorizontalAlignment="Left" Width="69.188" Style="{DynamicResource ButtonGrey}" ToolTip="Repair will forcefully re-install the required files needed for NV:MP"/>
+                    </mc:Choice>
+                </mc:AlternateContent>
                 <Label x:Name="NoServersMessage" Content="No servers found" Height="37" Margin="380,90,413,0" VerticalAlignment="Top" Foreground="#FF999999" HorizontalAlignment="Center" Background="{x:Null}" Visibility="Hidden"/>
                 <Button x:Name="RepairSteam_Control" Click="SteamRepair_Click" Content="Validate Steam Integrity"  UseLayoutRounding="False" VerticalContentAlignment="Center" Height="26" VerticalAlignment="Bottom" Margin="464,0,0,10" HorizontalAlignment="Left" Width="135" Style="{DynamicResource ButtonGrey}" ToolTip="Will attempt at a Steam repair of Fallout: New Vegas" FontSize="10"/>
                 <PasswordBox x:Name="CustomToken"
@@ -233,9 +239,21 @@
                 <ImageBrush ImageSource="/Res/nvmp-sex.png" Stretch="UniformToFill"/>
             </Border.Background>
         </Border>
-        <Label x:Name="VersionLabel" Grid.ColumnSpan="3" Content="Unknown Version" HorizontalAlignment="Left" VerticalAlignment="Top" Width="221.556" Background="{x:Null}" Foreground="White" Margin="38,10,0,0"/>
-        <Button Click="About_Click" HorizontalAlignment="Left" VerticalAlignment="Top" Width="27" Grid.ColumnSpan="3" Margin="10,10,0,0" Background="{x:Null}" BorderBrush="{x:Null}" Height="27" Foreground="{x:Null}">
-            <Image x:Name="AboutButton" Source="/Res/info.png" Width="23" Height="23" ToolTip="About" />
-        </Button>
+        <Border>
+            <StackPanel Orientation="Horizontal" Margin="20,20,-320,583" Width="300">
+                <Button x:Name="AboutButton"
+                        Click="About_Click"
+                        Width="28"
+                        ToolTip="About"
+                        Background="{x:Null}" BorderBrush="{x:Null}"  Foreground="{x:Null}">
+                    <Image Source="/Res/info.png" Width="23" Height="23" />
+                </Button>
+                <Label x:Name="VersionLabel"
+                       Background="{x:Null}"
+                       Content="{Binding CurrentVersionAndChannel}"
+                       Foreground="White"
+                       Width="250"/>
+            </StackPanel>
+        </Border>
     </Grid>
 </Window>

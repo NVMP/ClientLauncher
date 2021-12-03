@@ -7,6 +7,10 @@ using System.Windows;
 
 namespace ClientLauncher.Core.XNative
 {
+    /// <summary>
+    /// This opens up a socket locally to handle authentication handshakes. This code is not going to remain here for long, 
+    /// in future protocol based authorization and hand-off will be more secure and more compatible for most players.
+    /// </summary>
     public class DiscordTcpListener
     {
         public static readonly int ClientDiscordAuthListener = 8085;

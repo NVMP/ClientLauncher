@@ -4,6 +4,11 @@ using System.IO.Compression;
 
 namespace ClientLauncher.Core.XNative
 {
+#if !NEXUS_CANDIDATE
+    /// <summary>
+    /// Helpers to extract .zip files onto disk.
+    /// For Nexus submissions this is completely stripped as to follow Nexus submission terms of service.
+    /// </summary>
     public static class ZipArchiveExtensions
     {
         public static void ExtractToDirectory(this ZipArchive archive, string destinationDirectoryName, bool overwrite)
@@ -35,5 +40,5 @@ namespace ClientLauncher.Core.XNative
             }
         }
     }
-
+#endif
 }

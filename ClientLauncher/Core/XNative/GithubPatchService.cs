@@ -12,44 +12,23 @@ using System.IO.Compression;
 
 namespace ClientLauncher.Core.XNative
 {
+#if !NEXUS_CANDIDATE
+    /// <summary>
+    /// This is the automatic downloader and patching service that allows us to keep NV:MP up to date remotely.
+    /// For Nexus submissions this is completely stripped as to follow Nexus submission terms of service.
+    /// </summary>
     public class GithubPatchService
     {
         private MainWindow           ParentWindow;
         private Windows.PatchDisplay ModalWindow;
         private ManualResetEvent mre = new ManualResetEvent(false);
 
-        private string     Root;
-        private string     VersionFileName;
-
-        private string CurrentActiveVersion;
-
-        static private string GithubAPI_ReleasesLatest = "https://api.github.com/repos/NVMP/client-release/releases/latest";
-        static private string ForkVariable = "WontYouForkOff";
-
-        public class GitHubRelease
-        {
-            public GitHubRelease()
-            {
-            }
-
-            public class Asset
-            {
-                public Asset()
-                {
-                }
-
-                public string name;
-                public string browser_download_url;
-            }
-
-            public string tag_name;
-            public IEnumerable<Asset> assets;
-        }
+        private string Root;
 
         public GithubPatchService(MainWindow parent, string root)
         {
 #if !DEBUG
-            if (Environment.GetEnvironmentVariable(ForkVariable) == null)
+            if (Environment.GetEnvironmentVariable(XNativeConfig.Patching_ForkingVariable) == null)
             {
                 if (ForkClone())
                 {
@@ -59,11 +38,7 @@ namespace ClientLauncher.Core.XNative
 #endif
 
             ParentWindow = parent;
-            VersionFileName = ".nvmp_version";
             Root = root;
-            CurrentActiveVersion = ReadBinaryVersion();
-
-            ParentWindow.SetPatchVersion(CurrentActiveVersion);
         }
 
         public bool ForkClone()
@@ -90,7 +65,6 @@ namespace ClientLauncher.Core.XNative
             Trace.WriteLine("Current file is " + CurrentProcessPath);
             try
             {
-
                 File.Copy(CurrentProcessPath, FileNameTemp, true);
             }
             catch (Exception e)
@@ -115,7 +89,8 @@ namespace ClientLauncher.Core.XNative
                     fork.StartInfo.FileName = FileNameTemp;
                     fork.StartInfo.UseShellExecute = false;
                     fork.StartInfo.CreateNoWindow = true;
-                    fork.StartInfo.EnvironmentVariables.Add(ForkVariable, CurrentProcessPath);
+                    fork.StartInfo.WorkingDirectory = Directory.GetCurrentDirectory();
+                    fork.StartInfo.EnvironmentVariables.Add(XNativeConfig.Patching_ForkingVariable, CurrentProcessPath);
                     fork.Start();
                 }
             }
@@ -146,8 +121,7 @@ namespace ClientLauncher.Core.XNative
         //-----------------------------------------
         public void Restart()
         {
-            string process;
-            process = Environment.GetEnvironmentVariable(ForkVariable);
+            string process = Environment.GetEnvironmentVariable(XNativeConfig.Patching_ForkingVariable);
 
             if (process == null)
             {
@@ -167,35 +141,25 @@ namespace ClientLauncher.Core.XNative
                 fork.StartInfo.FileName = process;
                 fork.StartInfo.UseShellExecute = false;
                 fork.StartInfo.CreateNoWindow = true;
-                fork.StartInfo.EnvironmentVariables.Remove(ForkVariable);
+                fork.StartInfo.EnvironmentVariables.Remove(XNativeConfig.Patching_ForkingVariable);
                 fork.Start();
             }
 
             Process.GetCurrentProcess().Kill();
         }
 
-
-        public string ReadBinaryVersion()
+        /// <summary>
+        /// Updates the version on file with the current version parsed. The reason this is done here and not inside ProgramVersioning
+        /// is because we don't want program versioning having any responsibility for updating what patch the game client is at.
+        /// </summary>
+        public void UpdateBinaryVersion(string version)
         {
             if (Root == null)
             {
                 throw new Exception("Root cannot be null");
             }
 
-            if (File.Exists($"{Root}\\{VersionFileName}"))
-            {
-                return File.ReadAllText($"{Root}\\{VersionFileName}");
-            }
-            return null;
-        }
-
-        public void UpdateBinaryVersion()
-        {
-            if (Root == null)
-            {
-                throw new Exception("Root cannot be null");
-            }
-            File.WriteAllText($"{Root}\\{VersionFileName}", CurrentActiveVersion);
+            File.WriteAllText(ParentWindow.ProgramVersion.BuildFilenameFull, version);
         }
 
         private void ModalThread()
@@ -242,52 +206,31 @@ namespace ClientLauncher.Core.XNative
             mre.WaitOne();
 
             // See if we need to force a download, or that if there's no current active version on file
-            bool needsDownload = ForceOver || CurrentActiveVersion == null;
+            bool needsDownload = ForceOver || ParentWindow.ProgramVersion.CurrentVersion == null;
 
             // Get the releases information from GitHub
             using (var wc = new WebClient())
             {
-                ServicePointManager.Expect100Continue = true;
-                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-
-                wc.Headers.Add("User-Agent", "NVMP/X");
-
-                GitHubRelease releases = null;
-                try
-                {
-                    SetModalStatus(Windows.PatchDisplay.EPatchStatus.kPatchStatus_DownloadingManifest, "", 1);
-
-                    var serialiser = new JavaScriptSerializer();
-
-                    var json = wc.DownloadString(GithubAPI_ReleasesLatest);
-                    releases = serialiser.Deserialize<GitHubRelease>(json);
-
-                    if (releases.tag_name != CurrentActiveVersion)
-                    {
-                        // New version
-                        needsDownload = true;
-                    }
-                }
-                catch (Exception e)
-                {
-                    CloseModalSafe();
-                    MessageBox.Show("Failed to check remote manifest to patch, please check your internet connection\n" + e.Message);
-                    return;
-                }
-
                 if (needsDownload)
                 {
+                    if (ParentWindow.ProgramVersion.LatestRelease == null)
+                    {
+                        CloseModalSafe();
+                        MessageBox.Show("Patching Services are currently unavailable");
+                        return;
+                    }
+
                     Directory.CreateDirectory($"{Root}\\.nvmp_patch");
 
                     try
                     {
-                        foreach (var file in releases.assets)
+                        foreach (var file in ParentWindow.ProgramVersion.LatestRelease.assets)
                         {
                             SetModalStatus(Windows.PatchDisplay.EPatchStatus.kPatchStatus_Downloading, file.name);
                             wc.DownloadFile(file.browser_download_url, $"{Root}\\.nvmp_patch\\${file.name}");
                         }
 
-                        foreach (var file in releases.assets)
+                        foreach (var file in ParentWindow.ProgramVersion.LatestRelease.assets)
                         {
                             SetModalStatus(Windows.PatchDisplay.EPatchStatus.kPatchStatus_Applying, file.name);
 
@@ -307,8 +250,7 @@ namespace ClientLauncher.Core.XNative
                     }
 
                     Directory.Delete($"{Root}\\.nvmp_patch", true);
-                    CurrentActiveVersion = releases.tag_name;
-                    UpdateBinaryVersion();
+                    UpdateBinaryVersion(ParentWindow.ProgramVersion.LatestRelease.tag_name);
 
                     SetModalStatus(Windows.PatchDisplay.EPatchStatus.kPatchStatus_Restarting);
                     Thread.Sleep(2000);
@@ -320,4 +262,5 @@ namespace ClientLauncher.Core.XNative
             CloseModalSafe();
         }
     }
+#endif
 }

@@ -5,8 +5,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.NetworkInformation;
-using System.Security.Cryptography;
-using System.Text;
 using System.Timers;
 using System.Threading;
 using System.Web;
@@ -40,7 +38,10 @@ namespace ClientLauncher
 #endif
 
         // Services and instances for client auth
+#if !NEXUS_CANDIDATE
         public GithubPatchService   PatchService;
+#endif 
+        public ProgramVersioning    ProgramVersion;
         public DiscordAuthenticator DiscordAuthenticatorService;
         public LocalStorage         StorageService;
 
@@ -90,17 +91,19 @@ namespace ClientLauncher
             Closing += OnWindowClosing;
             BlurLevel = 0;
 
-            foreach (var process in Process.GetProcessesByName(Process.GetCurrentProcess().ProcessName))
+            if (System.Diagnostics.Process.GetProcessesByName(System.IO.Path.GetFileNameWithoutExtension(System.Reflection.Assembly.GetEntryAssembly().Location)).Count() > 1)
             {
-                if (process.Id != Process.GetCurrentProcess().Id)
-                {
-                    process.Kill();
-                }
+                MessageBox.Show($"The NV:MP launcher ({Process.GetCurrentProcess().ProcessName}) is already running! ", "New Vegas: Multiplayer");
+                Close();
+                return;
             }
 
             ENet.Managed.ManagedENet.Startup();
 
+            // Needed for communication to HTTPS supporting websites. This could either be the version checker, or the patch service.
+            // Regardless this needs to stay enabled even if we do a Nexus submission
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
+            ServicePointManager.Expect100Continue = true;
 
             StorageService = new LocalStorage();
             StorageService.TryLoadSavedData();
@@ -108,18 +111,34 @@ namespace ClientLauncher
             string falloutDir = FalloutFinder.GameDir(StorageService);
             if (falloutDir == null)
             {
-                MessageBox.Show("No fallout installation was found on this system, can't patch NV:MP without a valid game directory",
+                MessageBox.Show("No fallout installation was found on this system. NV:MP can't start up without a valid game directory",
                     "New Vegas: Multiplayer", MessageBoxButton.OK, MessageBoxImage.Warning);
                 Close();
                 return;
             }
 
+            ProgramVersion = new ProgramVersioning(falloutDir);
+
             // Start the viewer up.
             InitializeComponent();
             LoadCustomBackground();
 
+            VersionLabel.DataContext = ProgramVersion;
+
+#if !NEXUS_CANDIDATE
             // Patch before initialising components of the main window.
             PatchService = new GithubPatchService(this, falloutDir);
+#else
+            // If we are out of sync with the Nexus candidate, throw up a warning overlay and prevent the player from 
+            // connecting to servers. They will be incompatible. 
+            if (ProgramVersion.IsOutOfDate)
+            {
+                MessageBox.Show($"NV:MP ({ProgramVersion.CurrentVersion}) is out of date. Please update NV:MP via the Nexus mod page to version {ProgramVersion.LatestRelease.tag_name}, or through your mod manager."
+                    , "New Vegas: Multiplayer", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                Close();
+                return;
+            }
+#endif
             DiscordAuthenticatorService = new DiscordAuthenticator(this, StorageService);
             
             DiscordAuthenticatorService.Initialize();
@@ -129,7 +148,7 @@ namespace ClientLauncher
             // Patch if token is here.
             if (!HasGamePatched)
             {
-#if !DEBUG
+#if !DEBUG && !NEXUS_CANDIDATE
                 if (!Debugger.IsAttached)
                 {
                     PatchService.Patch();
@@ -214,14 +233,9 @@ namespace ClientLauncher
             }
         }
 
-        public void SetPatchVersion( string version )
-        {
-            VersionLabel.Content = "Version: " + version;
-        }
-
         public void OnWindowClosing(object sender, EventArgs e)
         {
-            DiscordAuthenticatorService.Shutdown();
+            DiscordAuthenticatorService?.Shutdown();
         }
 
         private void TryToInstallMSVC(string GameDir)
@@ -403,7 +417,9 @@ namespace ClientLauncher
             Dispatcher.Invoke(() =>
             {
                 Play_Control.IsEnabled       = true;
+#if !NEXUS_CANDIDATE
                 Repair_Control.IsEnabled     = true;
+#endif
                 RepairSteam_Control.IsEnabled = true;
             });
         }
@@ -451,8 +467,9 @@ namespace ClientLauncher
             }
         }
 
+#if !NEXUS_CANDIDATE
         /// <summary>
-        /// Click event that should start a forceful repair of the program.
+        /// Click event that should start a forceful resync of NV:MP binaries from GitHub
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -476,6 +493,7 @@ namespace ClientLauncher
             // Do the patching.
             PatchService.Patch( true );
         }
+#endif
 
         /// <summary>
         /// Repairs via Steam (temp hack)
@@ -772,7 +790,9 @@ namespace ClientLauncher
             Dispatcher.Invoke(() =>
             {
                 Play_Control.IsEnabled = false;
+#if !NEXUS_CANDIDATE
                 Repair_Control.IsEnabled = false;
+#endif
                 RepairSteam_Control.IsEnabled = false;
             });
         }
