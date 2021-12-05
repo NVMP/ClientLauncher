@@ -81,7 +81,7 @@ namespace ClientLauncher.Core.XNative
 
                         if (serviceEvent.Packet != null)
                         {
-                            if (serviceEvent.Packet.Data.Length <= 1024)
+                            if (serviceEvent.Packet.Data.Length <= (1024 * 12))
                             {
                                 var buffer = Encoding.ASCII.GetString(serviceEvent.Packet.Data.ToArray());
                                 result.CSVEntries = buffer.Split(',');

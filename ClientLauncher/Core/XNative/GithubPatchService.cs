@@ -206,7 +206,7 @@ namespace ClientLauncher.Core.XNative
             mre.WaitOne();
 
             // See if we need to force a download, or that if there's no current active version on file
-            bool needsDownload = ForceOver || ParentWindow.ProgramVersion.CurrentVersion == null;
+            bool needsDownload = ForceOver || ParentWindow.ProgramVersion.CurrentVersion == null || ParentWindow.ProgramVersion.IsOutOfDate;
 
             // Get the releases information from GitHub
             using (var wc = new WebClient())
