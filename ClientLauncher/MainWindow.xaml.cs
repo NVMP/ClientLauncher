@@ -53,16 +53,16 @@ namespace ClientLauncher
             "OldWorldBlues.esm",
             "LonesomeRoad.esm",
             "GunRunnersArsenal.esm",
+            "CaravanPack.esm",
+            "ClassicPack.esm",
+            "MercenaryPack.esm",
+            "TribalPack.esm",
             "Fallout3.esm",
             "Anchorage.esm",
             "ThePitt.esm",
             "BrokenSteel.esm",
             "PointLookout.esm",
             "Zeta.esm",
-            "CaravanPack.esm",
-            "ClassicPack.esm",
-            "MercenaryPack.esm",
-            "TribalPack.esm"
         };
 
         // Data
@@ -777,7 +777,7 @@ namespace ClientLauncher
             //
             var vanillaContent = modFileListPaths
                 .Where(c => VanillaMods.Contains(Path.GetFileName(c)))
-                .OrderBy(x => x)
+                .OrderBy(x => Array.FindIndex(VanillaMods, v => v == Path.GetFileName(x)))
                 .ToArray();
 
             var nonVanillaContent = modFileListPaths
