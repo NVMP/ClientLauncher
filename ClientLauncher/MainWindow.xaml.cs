@@ -45,6 +45,7 @@ namespace ClientLauncher
         public DiscordAuthenticator DiscordAuthenticatorService;
         public LocalStorage         StorageService;
 
+        // Keep in sync with gamefalloutnv.h 
         static public string[] VanillaMods = new string[]
         {
             "FalloutNV.esm",
