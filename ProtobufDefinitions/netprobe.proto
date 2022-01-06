@@ -1,0 +1,19 @@
+syntax = "proto3";
+package ProtobufMessages;
+option csharp_namespace = "ClientLauncher.Core";
+
+// This is the protocol buffers file for Probe information of external clients to the game server
+// It dumps various external information
+message NetProbe {
+
+	enum AuthType {
+		BASIC   = 0;
+		DISCORD = 1;
+	}
+
+	int32    NumPlayers = 1;
+	int32    MaxPlayers = 2;
+	AuthType AuthenticationType = 3;
+
+	repeated string Mods = 4;
+}

@@ -716,13 +716,16 @@ namespace ClientLauncher
                     var probe = new ServerProbe(server);
                     var result = probe.Connect();
 
-                    if (result.State != ServerProbe.ProbeStatus.ProbeState.Replied)
+                    if (result.State != ServerProbe.ProbeStatus.ProbeState.ReplyOK)
                     {
                         var msg = "Unknown";
                         switch (result.State)
                         {
                             case ServerProbe.ProbeStatus.ProbeState.AwaitingReply:
                                 msg = "Awaiting Reply";
+                                break;
+                            case ServerProbe.ProbeStatus.ProbeState.ReplyMalformed:
+                                msg = "Reply Malformed";
                                 break;
                             case ServerProbe.ProbeStatus.ProbeState.Unreachable:
                                 msg = "Unreachable";
@@ -736,9 +739,9 @@ namespace ClientLauncher
 
                     // The first entries of the result CSV are the mods available. If modsList doesnt exist (from a public server entry), then use the probe result
                     // as this allows for internal reporting to always be a reliable fallback.
-                    if (result.CSVEntries != null && result.CSVEntries.Count != 0)
+                    if (result.Result.Mods.Count != 0)
                     {
-                        modsList = String.Join(",", result.CSVEntries.FirstOrDefault().Split('\n'));
+                        modsList = String.Join(",", result.Result.Mods);
                     }
                 }
                 catch (Exception e)

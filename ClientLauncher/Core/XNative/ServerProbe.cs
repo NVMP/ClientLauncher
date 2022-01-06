@@ -26,12 +26,13 @@ namespace ClientLauncher.Core.XNative
             {
                 Unreachable,
                 AwaitingReply,
-                Replied
+                ReplyOK,
+                ReplyMalformed,
             };
 
             public ProbeState State { get; set; }
 
-            public ICollection<string> CSVEntries { get; set; }
+            public NetProbe Result { get; set; }
         }
 
         public ServerProbe(Dtos.DtoGameServer serverInfo)
@@ -73,18 +74,27 @@ namespace ClientLauncher.Core.XNative
                     {
                         Shutdown();
                         service = false;
+                        if (result.State == ProbeStatus.ProbeState.AwaitingReply)
+                        {
+                            result.State = ProbeStatus.ProbeState.Unreachable;
+                        }
                         break;
                     }
                     case ENetEventType.Receive:
                     {
-                        result.State = ProbeStatus.ProbeState.Replied;
+                        result.State = ProbeStatus.ProbeState.ReplyMalformed;
 
                         if (serviceEvent.Packet != null)
                         {
-                            if (serviceEvent.Packet.Data.Length <= (1024 * 12))
+                            try
                             {
-                                var buffer = Encoding.ASCII.GetString(serviceEvent.Packet.Data.ToArray());
-                                result.CSVEntries = buffer.Split(',');
+                                var packet = NetProbe.Parser.ParseFrom(serviceEvent.Packet.Data.ToArray());
+                                result.Result = packet;
+                                result.State = ProbeStatus.ProbeState.ReplyOK;
+                            }
+                            catch (Exception)
+                            {
+                                result.Result = null;
                             }
                         }
 
