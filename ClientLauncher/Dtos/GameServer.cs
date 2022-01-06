@@ -81,6 +81,8 @@ namespace ClientLauncher.Dtos
         //
         public bool IsStarred { get; set; } = false;
 
+        public bool IsPrivate { get; set; } = false;
+
         public Visibility DiscordResourceVisibility
         {
             get

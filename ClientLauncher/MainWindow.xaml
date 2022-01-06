@@ -6,6 +6,7 @@
         xmlns:nexuscandidate="nexus-candidate-mode"
         xmlns:mainbuild="main-build-mode"
         xmlns:converters="clr-namespace:ClientLauncher.Converters"
+        xmlns:tb="http://www.hardcodet.net/taskbar"
         mc:Ignorable="d mc nexuscandidate mainbuild"
         DataContext="{Binding RelativeSource={RelativeSource Self}}"
         Title="New Vegas: Multiplayer" Height="670" Width="1080" WindowStartupLocation="CenterScreen" ResizeMode="CanMinimize" Icon="/Res/nvmp-logo-32x32.png">
@@ -142,7 +143,7 @@
         <ControlTemplate x:Key="ServerRow" TargetType="ListBoxItem">
         </ControlTemplate>
     </Window.Resources>
-
+    
     <Grid Width="1073">
         <Grid.RowDefinitions>
             <RowDefinition/>
@@ -157,6 +158,18 @@
             <ColumnDefinition Width="749*"/>
             <ColumnDefinition Width="326*"/>
         </Grid.ColumnDefinitions>
+
+        <tb:TaskbarIcon x:Name="NotifyIcon" 
+                        ToolTipText="New Vegas: Multiplayer"
+                        IconSource="Res/nvmp-logo-32x32.ico"
+                        Visibility="Collapsed">
+            <tb:TaskbarIcon.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Show Launcher" Click="ContextMenu_ShowLauncher"></MenuItem>
+                    <MenuItem Header="Quit" Click="ContextMenu_Quit"></MenuItem>
+                </ContextMenu>
+            </tb:TaskbarIcon.ContextMenu>
+        </tb:TaskbarIcon>
 
         <Border x:Name="MessageBorder" Margin="61,0,328,32" VerticalAlignment="Bottom" Grid.Column="2" Height="24" Visibility="Hidden">
 

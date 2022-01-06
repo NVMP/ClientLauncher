@@ -1,5 +1,6 @@
 ﻿using ClientLauncher.Core;
 using System;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -58,9 +59,12 @@ namespace ClientLauncher.Windows
                 ParentWindow.JoinServer(new Dtos.DtoGameServer
                 {
                     IP = info[0],
-                    Port = port
+                    Port = port,
+                    IsPrivate = true
                 });
-            } catch (Exception) { }
+            } catch (Exception ex) {
+                Trace.WriteLine(ex.ToString());
+            }
         }
     }
 }

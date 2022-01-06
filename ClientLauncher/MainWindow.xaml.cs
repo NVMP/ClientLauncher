@@ -45,6 +45,8 @@ namespace ClientLauncher
         public DiscordAuthenticator DiscordAuthenticatorService;
         public LocalStorage         StorageService;
 
+        public GameActivityMonitor GameActivityMonitor;
+
         // Keep in sync with gamefalloutnv.h 
         static public string[] VanillaMods = new string[]
         {
@@ -140,6 +142,8 @@ namespace ClientLauncher
 
             // Need to mark the dependency here
             VersionLabel.DataContext = ProgramVersion;
+
+            GameActivityMonitor = new GameActivityMonitor(this);
 
 #if !NEXUS_CANDIDATE
             // Patch before initialising components of the main window.
@@ -254,6 +258,7 @@ namespace ClientLauncher
         public void OnWindowClosing(object sender, EventArgs e)
         {
             DiscordAuthenticatorService?.Shutdown();
+            GameActivityMonitor?.Shutdown();
         }
 
         private void TryToInstallMSVC(string GameDir)
@@ -430,18 +435,6 @@ namespace ClientLauncher
             IsQuerying = false;
         }
 
-        private void FalloutClosed(object sender, System.EventArgs e)
-        {
-            Dispatcher.Invoke(() =>
-            {
-                Play_Control.IsEnabled       = true;
-#if !NEXUS_CANDIDATE
-                Repair_Control.IsEnabled     = true;
-#endif
-                RepairSteam_Control.IsEnabled = true;
-            });
-        }
-
         public void PushWindowBlur()
         {
             if (BlurLevel == 0)
@@ -512,6 +505,22 @@ namespace ClientLauncher
             PatchService.Patch( true );
         }
 #endif
+
+        public void ContextMenu_ShowLauncher(object sender, RoutedEventArgs e)
+        {
+            ShowInTaskbar = true;
+            Show();
+            NotifyIcon.Visibility = System.Windows.Visibility.Collapsed;
+        }
+
+        public void ContextMenu_Quit(object sender, RoutedEventArgs e)
+        {
+            ShowInTaskbar = true;
+            Show();
+            NotifyIcon.Visibility = System.Windows.Visibility.Collapsed;
+
+            Close();
+        }
 
         /// <summary>
         /// Repairs via Steam (temp hack)
@@ -808,6 +817,8 @@ namespace ClientLauncher
             //
             // Start the game
             //
+            GameActivityMonitor.ShutdownCurrentActivity();
+
             var game = new Process();
             game.StartInfo.FileName             = installation.NVMPExe;
             game.StartInfo.Arguments            = $"{server.IP} {server.Port} {installation.GameID} {HttpUtility.UrlEncode(token)} \"{modsList}\"";
@@ -815,7 +826,29 @@ namespace ClientLauncher
             game.StartInfo.WorkingDirectory     = installation.GameDirectory;
             game.StartInfo.Verb                 = "runas";
             game.EnableRaisingEvents            = true;
-            game.Exited += new EventHandler(FalloutClosed);
+            game.Exited += delegate (object sender, EventArgs e)
+            {
+                // See if it spawned the game child
+                var procs = Process.GetProcessesByName("FalloutNV");
+                if (procs.Length == 0)
+                {
+                    GameActivityMonitor.ShutdownCurrentActivity();
+                    return;
+                }
+
+                var falloutproc = procs.FirstOrDefault();
+                GameActivityMonitor.TrackNewInstance(falloutproc, server);
+
+                Dispatcher.Invoke(() =>
+                {
+                    Play_Control.IsEnabled = true;
+#if !NEXUS_CANDIDATE
+                    Repair_Control.IsEnabled = true;
+#endif
+                    RepairSteam_Control.IsEnabled = true;
+                });
+            };
+
             game.Start();
 
             Dispatcher.Invoke(() =>
