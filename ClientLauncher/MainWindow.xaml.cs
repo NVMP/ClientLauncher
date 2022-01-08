@@ -760,59 +760,7 @@ namespace ClientLauncher
                 }
             }
 
-            //
-            // Sort Available Mods - Always put default mods first
-            //
-            var modFileListPaths = new List<string>();
-            if (modsList == "*")
-            {
-                // Query for all availalbe mods types
-                var files = Directory
-                    .EnumerateFiles($"{installation.GameDirectory}\\Data", "*.*", SearchOption.AllDirectories)
-                    .Where(s => new string[] { "esp", "esm" }.Contains(Path.GetExtension(s).TrimStart('.').ToLowerInvariant()));
-
-                modFileListPaths = files.ToList();
-
-                // var mods = Directory
-                //     .EnumerateFiles($"{installation.GameDirectory}\\Data", "*.*", SearchOption.AllDirectories)
-                //     .Where(s => new string[] { "esp", "esm" }.Contains(Path.GetExtension(s).TrimStart('.').ToLowerInvariant()))
-                //     .Select(s => Path.GetFileName(s));
-                // 
-                // modsList = "FalloutNV.esm," + String.Join(",", mods);
-            }
-            else
-            {
-                modFileListPaths = modsList.Split(',').Select(mod => $"{installation.GameDirectory}\\Data\\{mod}").ToList();
-            }
-
-            //
-            // Sort the mod file paths to ensure vanilla content is first
-            //
-            var vanillaContent = modFileListPaths
-                .Where(c => VanillaMods.Contains(Path.GetFileName(c)))
-                .OrderBy(x => Array.FindIndex(VanillaMods, v => v == Path.GetFileName(x)))
-                .ToArray();
-
-            var nonVanillaContent = modFileListPaths
-                .Where(c => !VanillaMods.Contains(Path.GetFileName(c)))
-                .OrderBy(x => x)
-                .ToArray();
-
-            modFileListPaths = vanillaContent.Concat(nonVanillaContent).ToList();
-
-            int index = 0;
-            foreach (var modFilePath in modFileListPaths)
-            {
-                try
-                {
-                    File.SetLastWriteTime(modFilePath, new DateTime(2000, (index / 29) + 1, index + 1));
-                    ++index;
-                }
-                catch (Exception e)
-                {
-                    Trace.WriteLine(e.Message);
-                }
-            }
+            SortModFiles(modsList, installation.GameDirectory);
 
             //
             // Start the game
@@ -859,6 +807,63 @@ namespace ClientLauncher
 #endif
                 RepairSteam_Control.IsEnabled = false;
             });
+        }
+
+        protected void SortModFiles(string modsList, string gameDirectory)
+        {
+            //
+            // Sort Available Mods - Always put default mods first
+            //
+            var modFileListPaths = new List<string>();
+            if (modsList == "*")
+            {
+                // Query for all availalbe mods types
+                var files = Directory
+                    .EnumerateFiles($"{gameDirectory}\\Data", "*.*", SearchOption.AllDirectories)
+                    .Where(s => new string[] { "esp", "esm" }.Contains(Path.GetExtension(s).TrimStart('.').ToLowerInvariant()));
+
+                modFileListPaths = files.ToList();
+
+                // var mods = Directory
+                //     .EnumerateFiles($"{installation.GameDirectory}\\Data", "*.*", SearchOption.AllDirectories)
+                //     .Where(s => new string[] { "esp", "esm" }.Contains(Path.GetExtension(s).TrimStart('.').ToLowerInvariant()))
+                //     .Select(s => Path.GetFileName(s));
+                // 
+                // modsList = "FalloutNV.esm," + String.Join(",", mods);
+            }
+            else
+            {
+                modFileListPaths = modsList.Split(',').Select(mod => $"{gameDirectory}\\Data\\{mod}").ToList();
+            }
+
+            //
+            // Sort the mod file paths to ensure vanilla content is first
+            //
+            //var vanillaContent = modFileListPaths
+            //    .Where(c => VanillaMods.Contains(Path.GetFileName(c)))
+            //    .OrderBy(x => Array.FindIndex(VanillaMods, v => v == Path.GetFileName(x)))
+            //    .ToArray();
+
+            //var nonVanillaContent = modFileListPaths
+            //    //.Where(c => !VanillaMods.Contains(Path.GetFileName(c)))
+            //    .OrderBy(x => Array.FindIndex(modFileListPaths.ToArray(), v => v == Path.GetFileName(x)))
+            //    .ToArray();
+            //
+            //modFileListPaths = /*vanillaContent.Concat(nonVanillaContent)*/ nonVanillaContent.ToList();
+
+            int index = 0;
+            foreach (var modFilePath in modFileListPaths)
+            {
+                try
+                {
+                    File.SetLastWriteTime(modFilePath, new DateTime(2000, (index / 29) + 1, index + 1));
+                    ++index;
+                }
+                catch (Exception e)
+                {
+                    Trace.WriteLine(e.Message);
+                }
+            }
         }
 
         protected void CancelJoiningServer(object sender, EventArgs e)
@@ -1033,6 +1038,9 @@ namespace ClientLauncher
             {
                 return;
             }
+
+            // First do a soft mod load order sort of all mods on disk. 
+            // SortModFiles("*", falloutDir);
 
             var game = new Process();
             game.StartInfo.FileName = $"{falloutDir}\\{XNativeConfig.Exe_PrivateServer}";
