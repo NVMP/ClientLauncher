@@ -145,9 +145,9 @@ namespace ClientLauncher.Core.XNative
             try
             {
                 LatestRelease = GetLatestProgramRelease();
-            } catch (WebException)
+            } catch (WebException e)
             {
-                MessageBox.Show("Could not check for updates, please check your internet connection");
+                MessageBox.Show($"Could not check for updates, please check your internet connection\n\n{e}");
             }
             catch (Exception)
             {

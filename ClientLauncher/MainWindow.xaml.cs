@@ -143,6 +143,11 @@ namespace ClientLauncher
             // Need to mark the dependency here
             VersionLabel.DataContext = ProgramVersion;
 
+            VerifyOrRunOtherGameLauncher(falloutDir, copyIfMissing: true);
+
+            // Show the fallout folder name in the root window
+            Title = $"{Title} - {Path.GetFileName(falloutDir)}";
+
             GameActivityMonitor = new GameActivityMonitor(this);
 
 #if !NEXUS_CANDIDATE
@@ -228,6 +233,59 @@ namespace ClientLauncher
             Topmost = true;  // important
             Topmost = false; // important
             Focus();         // important
+        }
+
+        public void VerifyOrRunOtherGameLauncher(string falloutDir, bool copyIfMissing = false)
+        {
+            if (!Debugger.IsAttached)
+            {
+                // If this launcher is not the launcher inside the fallout dir, then we need to switch to it to 
+                // ensure that any patching that happens returns back to the original launcher.
+                if (Environment.GetEnvironmentVariable(XNativeConfig.Patching_ForkingVariable) == null)
+                {
+                    var expectedFolder = falloutDir;
+                    var currentExeFolder = Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location);
+                    var currentExeName = Path.GetFileName(System.Reflection.Assembly.GetEntryAssembly().Location);
+                    if (expectedFolder != currentExeFolder)
+                    {
+                        // If there is a launcher in there with the same name as ours, then start that one up instead
+                        var requiredLauncherName = $"{expectedFolder}\\{currentExeName}";
+
+                        if (copyIfMissing)
+                        {
+                            if (!File.Exists(requiredLauncherName))
+                            {
+                                try
+                                {
+                                    File.Copy(System.Reflection.Assembly.GetEntryAssembly().Location, requiredLauncherName);
+                                } catch (Exception) { }
+                            }
+                        }
+
+                        if (File.Exists(requiredLauncherName))
+                        {
+                            try
+                            {
+                                using (Process fork = new Process())
+                                {
+                                    fork.StartInfo.FileName = requiredLauncherName;
+                                    fork.StartInfo.UseShellExecute = false;
+                                    fork.StartInfo.CreateNoWindow = true;
+                                    fork.StartInfo.WorkingDirectory = expectedFolder;
+                                    fork.Start();
+                                }
+
+                                Process.GetCurrentProcess().Kill();
+                            }
+                            catch (Exception)
+                            {
+                                // Purposeful fall-through if the above fails
+                            }
+                        }
+                    }
+                }
+            }
+
         }
 
         /// <summary>
@@ -614,6 +672,10 @@ namespace ClientLauncher
                     try
                     {
                         GetAndVerifyInstallation();
+
+                        // We may need to swap over to that installation's launcher if it exists, but if it doesn't, then copy our launcher
+                        // into it and then it should automatically update
+                        VerifyOrRunOtherGameLauncher(StorageService.GamePathOverride, copyIfMissing: true);
                     }
                     catch (Exception ex)
                     {
