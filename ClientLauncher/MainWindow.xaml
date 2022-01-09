@@ -143,7 +143,7 @@
         <ControlTemplate x:Key="ServerRow" TargetType="ListBoxItem">
         </ControlTemplate>
     </Window.Resources>
-    
+
     <Grid Width="1073">
         <Grid.RowDefinitions>
             <RowDefinition/>
@@ -196,7 +196,7 @@
                     <Label Padding="5px" Background="Transparent" Foreground="White" Margin="107.24,0,421,0">Name</Label>
                 </Grid>
 
-                <ScrollViewer Margin="10,79,10,41" VerticalScrollBarVisibility="Auto">
+                <ScrollViewer Margin="10,79,10,72" VerticalScrollBarVisibility="Auto">
                     <!-- implementation -->
                     <ListBox x:Name="ServerList"
                              SelectionChanged="ServerItem_Selected"
@@ -249,7 +249,7 @@
                         VerticalContentAlignment="Center" 
                         Height="26" 
                         VerticalAlignment="Bottom" 
-                        Margin="282.978,0,492,9.678" 
+                        Margin="815.833,0,10,41" 
                         FontSize="12"
                         Style="{DynamicResource ButtonGrey}" >
                 </Button>
@@ -270,7 +270,7 @@
                              />
                 <Button x:Name="CopyToken" Click="CopyToken_Click" Content="Copy"  UseLayoutRounding="False" VerticalContentAlignment="Center" Height="26" VerticalAlignment="Bottom" Margin="0,0,140.167,10" HorizontalAlignment="Right" Width="44" Style="{DynamicResource ButtonGrey}"
                         ToolTip="Copy your private token to clipboard"/>
-                <Label x:Name="LoadingServersMessage" Content="Loading servers..." Height="37" Margin="419.576,90,452.576,0" VerticalAlignment="Top" Foreground="#FF999999" HorizontalAlignment="Center" Background="{x:Null}"/>
+                <Label x:Name="LoadingServersMessage" Content="Loading servers..." Height="37" Margin="420,90,423,0" VerticalAlignment="Top" Foreground="#FF999999" HorizontalAlignment="Center" Background="{x:Null}" Width="108"/>
                 <Button x:Name="OverrideGameDir" Click="OverrideGameDir_Click" Content="Edit Game Directory"  UseLayoutRounding="False" VerticalContentAlignment="Center" Height="26" VerticalAlignment="Bottom" Margin="0,0,10,10" HorizontalAlignment="Right" Width="125.167" Style="{DynamicResource ButtonGrey}"
                         ToolTip="Override the game folder used to play NV:MP from"/>
             </Grid>
