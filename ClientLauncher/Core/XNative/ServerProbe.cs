@@ -37,8 +37,18 @@ namespace ClientLauncher.Core.XNative
 
         public ServerProbe(Dtos.DtoGameServer serverInfo)
         {
-            var hostEntry = Dns.GetHostEntry(serverInfo.IP);
-            Address = new IPEndPoint(hostEntry.AddressList.Where(s => s.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork).FirstOrDefault(), serverInfo.Port);
+            // First try to resolve it as a public IP
+            try
+            {
+                IPAddress ip = IPAddress.Parse(serverInfo.IP);
+                Address = new IPEndPoint(ip, serverInfo.Port);
+            }
+            catch (Exception)
+            {
+                // Try to resolve it as a host entry instead
+                var hostEntry = Dns.GetHostEntry(serverInfo.IP);
+                Address = new IPEndPoint(hostEntry.AddressList.Where(s => s.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork).FirstOrDefault(), serverInfo.Port);
+            }
 
             IPEndPoint listenEndPoint = null;
             Host = new ENetHost(listenEndPoint, 1, 1);
