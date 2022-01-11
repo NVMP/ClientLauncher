@@ -134,8 +134,6 @@ namespace ClientLauncher
                 return;
             }
 
-            ProgramVersion = new ProgramVersioning(falloutDir);
-
             // Start the viewer up.
             InitializeComponent();
             LoadCustomBackground();
@@ -143,12 +141,19 @@ namespace ClientLauncher
             // Need to mark the dependency here
             VersionLabel.DataContext = ProgramVersion;
 
-            VerifyOrRunOtherGameLauncher(falloutDir, copyIfMissing: true);
+            // If this launcher is not the launcher inside the fallout dir, then we need to switch to it to 
+            // ensure that any patching that happens returns back to the original launcher.
+            if (Environment.GetEnvironmentVariable(XNativeConfig.Patching_ForkingVariable) == null)
+            {
+                VerifyOrRunOtherGameLauncher(falloutDir, copyIfMissing: true);
+            }
 
             // Show the fallout folder name in the root window
             Title = $"{Title} - {Path.GetFileName(falloutDir)}";
 
             GameActivityMonitor = new GameActivityMonitor(this);
+
+            ProgramVersion = new ProgramVersioning(falloutDir);
 
 #if !NEXUS_CANDIDATE
             // Patch before initialising components of the main window.
@@ -239,48 +244,43 @@ namespace ClientLauncher
         {
             if (!Debugger.IsAttached)
             {
-                // If this launcher is not the launcher inside the fallout dir, then we need to switch to it to 
-                // ensure that any patching that happens returns back to the original launcher.
-                if (Environment.GetEnvironmentVariable(XNativeConfig.Patching_ForkingVariable) == null)
+                var expectedFolder = falloutDir;
+                var currentExeFolder = Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location);
+                var currentExeName = Path.GetFileName(System.Reflection.Assembly.GetEntryAssembly().Location);
+                if (expectedFolder != currentExeFolder)
                 {
-                    var expectedFolder = falloutDir;
-                    var currentExeFolder = Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location);
-                    var currentExeName = Path.GetFileName(System.Reflection.Assembly.GetEntryAssembly().Location);
-                    if (expectedFolder != currentExeFolder)
+                    // If there is a launcher in there with the same name as ours, then start that one up instead
+                    var requiredLauncherName = $"{expectedFolder}\\{currentExeName}";
+
+                    if (copyIfMissing)
                     {
-                        // If there is a launcher in there with the same name as ours, then start that one up instead
-                        var requiredLauncherName = $"{expectedFolder}\\{currentExeName}";
-
-                        if (copyIfMissing)
-                        {
-                            if (!File.Exists(requiredLauncherName))
-                            {
-                                try
-                                {
-                                    File.Copy(System.Reflection.Assembly.GetEntryAssembly().Location, requiredLauncherName);
-                                } catch (Exception) { }
-                            }
-                        }
-
-                        if (File.Exists(requiredLauncherName))
+                        if (!File.Exists(requiredLauncherName))
                         {
                             try
                             {
-                                using (Process fork = new Process())
-                                {
-                                    fork.StartInfo.FileName = requiredLauncherName;
-                                    fork.StartInfo.UseShellExecute = false;
-                                    fork.StartInfo.CreateNoWindow = true;
-                                    fork.StartInfo.WorkingDirectory = expectedFolder;
-                                    fork.Start();
-                                }
+                                File.Copy(System.Reflection.Assembly.GetEntryAssembly().Location, requiredLauncherName);
+                            } catch (Exception) { }
+                        }
+                    }
 
-                                Process.GetCurrentProcess().Kill();
-                            }
-                            catch (Exception)
+                    if (File.Exists(requiredLauncherName))
+                    {
+                        try
+                        {
+                            using (Process fork = new Process())
                             {
-                                // Purposeful fall-through if the above fails
+                                fork.StartInfo.FileName = requiredLauncherName;
+                                fork.StartInfo.UseShellExecute = false;
+                                fork.StartInfo.CreateNoWindow = true;
+                                fork.StartInfo.WorkingDirectory = expectedFolder;
+                                fork.Start();
                             }
+
+                            Process.GetCurrentProcess().Kill();
+                        }
+                        catch (Exception)
+                        {
+                            // Purposeful fall-through if the above fails
                         }
                     }
                 }
@@ -777,7 +777,7 @@ namespace ClientLauncher
 
             // If the mods list ins't correctly populated, try to PROBE the server to see if we can grab this information
             // directly. We don't do this if we have the mods list already, as this can be delivered elsewhere in the launcher (server list, maybe URL?)
-            if (modsList == "*")
+            //if (modsList == "*")
             {
                 //
                 // Try to probe
