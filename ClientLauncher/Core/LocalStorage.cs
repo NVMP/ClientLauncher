@@ -14,7 +14,7 @@ namespace ClientLauncher.Core
 {
     public class LocalStorage
     {
-        private static readonly int    InternalStorageRevision = 1;
+        private static readonly int    InternalStorageRevision = 2;
         private static readonly string InternalAppDataFolder = "NewVegasMultiplayer";
         private static readonly string InternalDataFilename = "newvegasmp.config";
 
@@ -23,8 +23,7 @@ namespace ClientLauncher.Core
 
         private static List<string> TrustedDefaultServers = new List<string>
         {
-            "euw.nv-mp.com:27017",
-            "localhost:27015"
+            "eden.nv-mp.com:27017"
         };
 
         [XmlRoot("dictionary")]
@@ -279,6 +278,14 @@ namespace ClientLauncher.Core
             get
             {
                 return InternalData.PreviousCustomIP;
+            }
+        }
+
+        public IEnumerable<string> StarredServers
+        {
+            get
+            {
+                return InternalData.StarredServers;
             }
         }
 

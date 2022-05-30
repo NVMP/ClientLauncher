@@ -219,19 +219,20 @@
                                         <Label Background="Transparent" Foreground="White" Padding="5,25,5,5" 
                                            Content="{Binding Description}"
                                            />
+                                        <!-- state -->
+                                        <Label Visibility="{Binding StarredResourceVisibility}" Foreground="#CCC"
+                                                Padding="5,50,5,5">
+                                            Trusted Server
+                                        </Label>
                                     </Grid>
                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Right" Background="Transparent" Width="52.259">
                                         <!-- authenticators -->
                                         <Image Visibility="{Binding DiscordResourceVisibility}"
-                                               Source="/Res/discord.png" RenderOptions.BitmapScalingMode="HighQuality" Width="25" Height="25" HorizontalAlignment="Left"
+                                               Source="/Res/discord.png" RenderOptions.BitmapScalingMode="HighQuality" Width="25" Height="25" HorizontalAlignment="Right"
                                                ToolTip="Discord authentication required"/>
                                         <Image Visibility="{Binding OtherAuthenticatorVisibility}"
-                                               Source="/Res/shield.png" RenderOptions.BitmapScalingMode="HighQuality" Width="25" Height="25" HorizontalAlignment="Left"
+                                               Source="/Res/shield.png" RenderOptions.BitmapScalingMode="HighQuality" Width="25" Height="25" HorizontalAlignment="Right"
                                                ToolTip="Authentication required"/>
-
-                                        <!-- state -->
-                                        <Image Visibility="{Binding StarredResourceVisibility}"
-                                               Source="{Binding DisplayStarResource}" Width="15" Height="15" HorizontalAlignment="Left"/>
 
                                     </StackPanel>
                                 </Grid>
@@ -273,6 +274,16 @@
                 <Label x:Name="LoadingServersMessage" Content="Loading servers..." Height="37" Margin="420,90,423,0" VerticalAlignment="Top" Foreground="#FF999999" HorizontalAlignment="Center" Background="{x:Null}" Width="108"/>
                 <Button x:Name="OverrideGameDir" Click="OverrideGameDir_Click" Content="Edit Game Directory"  UseLayoutRounding="False" VerticalContentAlignment="Center" Height="26" VerticalAlignment="Bottom" Margin="0,0,10,10" HorizontalAlignment="Right" Width="125.167" Style="{DynamicResource ButtonGrey}"
                         ToolTip="Override the game folder used to play NV:MP from"/>
+                <Button x:Name="RefreshServerListButton"
+                    Click="Refresh_ServerList_Click"
+                    Content="Refresh"
+                    UseLayoutRounding="False"
+                    VerticalContentAlignment="Center" 
+                    Height="18" 
+                    VerticalAlignment="Bottom" 
+                    Margin="898.166,0,17,371" 
+                    FontSize="8"
+                    Style="{DynamicResource ButtonGrey}" />
             </Grid>
 
         </Border>

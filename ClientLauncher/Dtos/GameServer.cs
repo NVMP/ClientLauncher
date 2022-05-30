@@ -124,13 +124,5 @@ namespace ClientLauncher.Dtos
                 return $"{IP}:{Port}";
             }
         }
-
-        public string DisplayStarResource
-        {
-            get
-            {
-                return IsStarred ? "/Res/unstar.png" : "/Res/star.png";
-            }
-        }
     }
 }

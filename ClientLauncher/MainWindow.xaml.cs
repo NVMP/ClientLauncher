@@ -17,6 +17,7 @@ using ClientLauncher.Core.XNative;
 using ClientLauncher.Dtos;
 using ClientLauncher.Core;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace ClientLauncher
 {
@@ -27,13 +28,9 @@ namespace ClientLauncher
     {
         // Global constants
 
-#if DEBUG
-        private static readonly int TimerIntervalQueryServers = 6 * 1000;
-        private static readonly int TimerIntervalPingServers = 1 * 1000;
+#if DEBUG && false
         private static readonly string BroadcastServer = "http://localhost:5000/";
 #else
-        private static readonly int TimerIntervalQueryServers = 60 * 1000;
-        private static readonly int TimerIntervalPingServers = 10 * 1000;
         private static readonly string BroadcastServer = "https://nv-mp.com/";
 #endif
 
@@ -74,11 +71,7 @@ namespace ClientLauncher
         private Windows.JoiningServerDisplay JoiningWindowInstance;
         private Windows.ManuallyJoinServerDisplay ManuallyJoinServerWindowInstance;
 
-        private System.Timers.Timer QueryTimer;
-        private System.Timers.Timer PingTimer;
-
         private bool  IsQuerying;
-        private bool  IsPinging;
         private int   BlurLevel;
 
         public string GamePathOverride;
@@ -103,7 +96,6 @@ namespace ClientLauncher
         {
             HasGamePatched = false;
             IsQuerying = false;
-            IsPinging = false;
             AboutWindowInstance = null;
             Closing += OnWindowClosing;
             BlurLevel = 0;
@@ -138,8 +130,8 @@ namespace ClientLauncher
             InitializeComponent();
             LoadCustomBackground();
 
-            // Need to mark the dependency here
-            VersionLabel.DataContext = ProgramVersion;
+            ServerListCollection = new ObservableCollection<DtoGameServer>();
+            ServerList.ItemsSource = ServerListCollection;
 
             // If this launcher is not the launcher inside the fallout dir, then we need to switch to it to 
             // ensure that any patching that happens returns back to the original launcher.
@@ -154,6 +146,9 @@ namespace ClientLauncher
             GameActivityMonitor = new GameActivityMonitor(this);
 
             ProgramVersion = new ProgramVersioning(falloutDir);
+
+            // Need to mark the dependency here
+            VersionLabel.DataContext = ProgramVersion;
 
 #if !NEXUS_CANDIDATE
             // Patch before initialising components of the main window.
@@ -188,24 +183,93 @@ namespace ClientLauncher
 #endif
                 HasGamePatched = true;
 
-                QueryTimer = new System.Timers.Timer
-                {
-                    Interval = TimerIntervalQueryServers
-                };
-                QueryTimer.Elapsed += QueryServers;
-                QueryTimer.Start();
-
-                PingTimer = new System.Timers.Timer
-                {
-                    Interval = TimerIntervalPingServers
-                };
-                PingTimer.Elapsed += PingServers;
-                PingTimer.Start();
-
                 new Thread(delegate ()
                 {
-                    QueryServers(null, null);
-                    PingServers(null, null);
+#if DEBUG
+                    Dispatcher.Invoke(() =>
+                    {
+                        var dbgServerList = new List<DtoGameServer>();
+                        var rng = new Random();
+
+                        Func<string> randomIPGen = () =>
+                        {
+                            var items = new string[] { "google.com", "nv-mp.com", "domain.com", "10.0.0.2", "128.0.0.1", "74.3.2.5", "1.2.3.4" };
+                            return items[rng.Next(items.Length - 1)];
+                        };
+
+                        Func<ushort> randomPortGen = () =>
+                        {
+                            return (ushort)rng.Next(1000, ushort.MaxValue);
+                        };
+
+                        Func<string> randomNameGen = () =>
+                        {
+                            var items = new string[] { "A New Vegas Multiplayer server", "My Server", "Cool Server Dot Com", "Battle of the Brutes", "BIG WEINERS ONLY", "DOG",
+                        "Point Lookout Deathmatch | 64 Tick" };
+                            return items[rng.Next(items.Length - 1)];
+                        };
+
+                        Func<int> randomMaxPlayersGen = () =>
+                        {
+                            return rng.Next(0, 64);
+                        };
+
+                        // add a good fair few low pop servers
+                        for (int i = 0; i < 32; ++i)
+                        {
+                            var maxPlayers = randomMaxPlayersGen();
+                            var playerDensity = (float)rng.NextDouble();
+
+                            var server = new DtoGameServer
+                            {
+                                IP = randomIPGen(),
+                                Port = randomPortGen(),
+                                Name = randomNameGen(),
+                                Authenticator = "discord",
+                                MaxPlayers = maxPlayers,
+                                NumPlayers = playerDensity >= 0.25 ? (int)((float)maxPlayers * playerDensity) : 0
+                            };
+
+                            dbgServerList.Add(server);
+                        }
+
+                        // add some high pop servers
+                        for (int i = 0; i < 5; ++i)
+                        {
+                            var maxPlayers = 64;
+                            var playerDensity = (float)rng.NextDouble();
+
+                            var server = new DtoGameServer
+                            {
+                                IP = randomIPGen(),
+                                Port = randomPortGen(),
+                                Name = randomNameGen(),
+                                Authenticator = "discord",
+                                MaxPlayers = maxPlayers,
+                                NumPlayers = 45
+                            };
+
+                            dbgServerList.Add(server);
+                        }
+
+                        // add the main server
+                        var main = new DtoGameServer
+                        {
+                            IP = "eden.nv-mp.com",
+                            Port = 27017,
+                            Name = "[OFFICIAL] Freeroam Server",
+                            Authenticator = "discord",
+                            MaxPlayers = 45,
+                            NumPlayers = 2
+                        };
+
+                        dbgServerList.Add(main);
+
+                        ProcessRemoteServerList(dbgServerList);
+                        NoServersMessage.Visibility = Visibility.Hidden;
+                        LoadingServersMessage.Visibility = Visibility.Hidden;
+                    });
+#endif
                     try
                     {
                         GetAndVerifyInstallation();
@@ -219,7 +283,7 @@ namespace ClientLauncher
                         });
                     }
                 }).Start();
-            }
+                }
 
 
             Thread.Sleep(500);
@@ -345,7 +409,33 @@ namespace ClientLauncher
             installer.WaitForExit(); // Make sure this process is completed before starting NV:MP
         }
 
-        private void DisplayServerList(List<DtoGameServer> servers)
+        private void SortServerList()
+        {
+            Dispatcher.Invoke(() =>
+            {
+                // Sort the servers
+                Trace.WriteLine("Sorting...");
+
+                var sortedCollection = ServerListCollection.ToList();
+                sortedCollection.Sort(delegate (DtoGameServer a, DtoGameServer b)
+                {
+                    if (a.IsStarred)
+                    {
+                        return -1;
+                    }
+                    if (b.IsStarred)
+                        return 1;
+
+                    return b.NumPlayers.CompareTo(a.NumPlayers);
+                });
+
+                ServerListCollection = new ObservableCollection<DtoGameServer>(sortedCollection);
+                ServerList.ItemsSource = ServerListCollection;
+                ServerList.Items.Refresh();
+            });
+        }
+
+        private void ProcessRemoteServerList(List<DtoGameServer> servers)
         {
             if (servers.Count == 0)
             {
@@ -357,62 +447,77 @@ namespace ClientLauncher
 
                 NoServersMessage.Visibility = Visibility.Hidden;
 
-                ServerListCollection = new ObservableCollection<DtoGameServer>(servers);
-                ServerList.ItemsSource = ServerListCollection;
+                int pendingPings = 0;
+                foreach (var server in servers)
+                {
+                    ++pendingPings;
+
+                    // Evaluate if the server is starred
+                    if (StorageService.StarredServers.Contains($"{server.IP}:{server.Port}"))
+                        server.IsStarred = true;
+
+                    // Evaluate the ping
+                    Task.Run(() =>
+                    {
+                        if (PingServer(server))
+                        {
+                            Dispatcher.Invoke(() =>
+                            {
+                                ServerListCollection.Add(server);
+                            });
+                        }
+
+                        --pendingPings;
+
+                        if (pendingPings == 0)
+                        {
+                            SortServerList();
+                        }
+                    });
+                }
 
                 ServerList.SelectedIndex = SoftReturnPosition;
             }
         }
-        private void PingServers(Object source, System.Timers.ElapsedEventArgs e)
+
+        /// <summary>
+        /// A synchronous ping of a server object. Will update the supplied object with status updates
+        /// </summary>
+        /// <param name="server"></param>
+        internal bool PingServer(DtoGameServer server)
         {
-            if (IsPinging)
-            {
-                return;
-            }
+            Trace.WriteLine($"Pinging {server.Name} {server.IP}");
 
-            if (ServerListCollection == null)
+            PingReply reply;
+            try
             {
-                return;
-            }
-
-            IsPinging = true;
-
-            var pingInstance = new Ping();
-            foreach (DtoGameServer server in ServerListCollection)
-            {
-                PingReply reply;
-                try
+                var pingInstance = new Ping();
+                reply = pingInstance.Send(server.IP, 1000);
+                switch (reply.Status)
                 {
-                    reply = pingInstance.Send(server.IP, 1000);
-                    switch (reply.Status)
-                    {
-                        case IPStatus.Success:
-                            {
-                                server.DisplayPing = reply.RoundtripTime.ToString() + " ms";
-                                break;
-                            }
-                        default:
-                            {
-                                server.DisplayPing = "TMOUT";
-                                break;
-                            }
-                    }
+                    case IPStatus.Success:
+                        {
+                            server.DisplayPing = reply.RoundtripTime.ToString() + " ms";
+                            break;
+                        }
+                    default:
+                        {
+                            server.DisplayPing = "TMOUT";
+                            break;
+                        }
                 }
-                catch (Exception)
-                {
-                    server.DisplayPing = "ERR";
-                }
+
+                return reply.Status == IPStatus.Success;
+            }
+            catch (Exception)
+            {
+                server.DisplayPing = "ERR";
             }
 
-            Dispatcher.Invoke(() =>
-            {
-                ServerList.Items.Refresh();
-            });
-
-            IsPinging = false;
+            return false;
         }
 
-        private async void QueryServers(object source, ElapsedEventArgs e)
+        private async void QueryServers()
         {
             if (IsQuerying)
             {
@@ -432,15 +537,13 @@ namespace ClientLauncher
                     var servers = JsonConvert.DeserializeObject<List<DtoGameServer>>(response.Content);
                     if (servers != null && servers.Count > 0)
                     {
-                        // Sort the servers
-                        servers.Sort(delegate (DtoGameServer a, DtoGameServer b)
-                        {
-                            return b.NumPlayers - a.NumPlayers;
-                        });
-
                         Dispatcher.Invoke(() =>
                         {
-                            DisplayServerList(servers);
+                            if (ServerListCollection != null)
+                            {
+                                ServerListCollection.Clear();
+                            }
+                            ProcessRemoteServerList(servers);
                             NoServersMessage.Visibility = Visibility.Hidden;
                         });
                     }
@@ -534,6 +637,14 @@ namespace ClientLauncher
                     });
                 }
             }
+        }
+
+        public void Refresh_ServerList_Click(object sender, RoutedEventArgs e)
+        {
+            Task.Run(() =>
+            {
+                QueryServers();
+            });
         }
 
 #if !NEXUS_CANDIDATE

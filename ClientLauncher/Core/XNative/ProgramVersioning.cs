@@ -40,7 +40,7 @@ namespace ClientLauncher.Core.XNative
             switch (channel)
             {
                 case BuildChannel.PublicAutomaticVersionControl:
-                    return "PTC";
+                    return "PUBLIC";
                 case BuildChannel.BetaDeployedBuild:
                     return "BETA";
                 case BuildChannel.PublicNexusDeployedCandidate:
@@ -58,26 +58,43 @@ namespace ClientLauncher.Core.XNative
 #elif DEBUG
                 return BuildChannel.BetaDeployedBuild;
 #else
+                if (CurrentVersion.ToLower().EndsWith("_beta"))
+                {
+                    return BuildChannel.BetaDeployedBuild;
+                }
+
                 return BuildChannel.PublicAutomaticVersionControl;
 #endif
             }
         }
+
+        public bool IsCurrentBuildStale = false;
 
         private readonly string GameDir;
 
         public string BuildFilename => ".nvmp_version";
         public string BuildFilenameFull => $"{GameDir}\\{BuildFilename}";
 
+
+        internal string InternalCachedCurrentVersion = null;
         public string CurrentVersion
         {
             get
             {
-                if (File.Exists( BuildFilenameFull ))
+                if (InternalCachedCurrentVersion == null)
                 {
-                    return File.ReadAllText( BuildFilenameFull ).Trim();
+                    if (File.Exists(BuildFilenameFull))
+                    {
+                        InternalCachedCurrentVersion = File.ReadAllText(BuildFilenameFull).Trim();
+                    }
                 }
 
-                return "UnknownIOVersion";
+                if (InternalCachedCurrentVersion == null)
+                {
+                    return "UnknownIOVersion";
+                }
+
+                return InternalCachedCurrentVersion;
             }
         }
 
@@ -101,6 +118,18 @@ namespace ClientLauncher.Core.XNative
             public IEnumerable<Asset> assets;
         }
 
+        internal string GithubAPIURL
+        {
+            get
+            {
+                if (CurrentBuildChannel == BuildChannel.BetaDeployedBuild)
+                {
+                    return XNativeConfig.GithubAPI_BetaReleasesLatest;
+                }
+                return XNativeConfig.GithubAPI_ReleasesLatest;
+            }
+        }
+
         /// <summary>
         /// Queries the release information about the mod on GitHub. This call can throw a number of exceptions,
         /// as it does various online queries - and de-serialization operations
@@ -108,14 +137,43 @@ namespace ClientLauncher.Core.XNative
         /// <returns></returns>
         internal GitHubRelease GetLatestProgramRelease()
         {
+            string TempCacheFilepath = $"{Path.GetTempPath()}\\{GetPublicBuildString(CurrentBuildChannel)}.{XNativeConfig.GithubAPI_CacheFilename}";
+            var serialiser = new JavaScriptSerializer();
+
             // Get the releases information from GitHub
-            using (var wc = new WebClient())
+            try
             {
-                wc.Headers.Add("User-Agent", "NVMP/X");
+                using (var wc = new WebClient())
+                {
+                    wc.Headers.Add("User-Agent", "NVMP/X");
+                    var json = wc.DownloadString(GithubAPIURL);
+                    try
+                    {
+                        File.WriteAllText(TempCacheFilepath, json);
+                    }
+                    catch (Exception) { }
+                    return serialiser.Deserialize<GitHubRelease>(json);
+                }
+            }
+            catch (WebException e)
+            {
+                // HTTP download failed, try to use a cached file and report this installation as stale
+                IsCurrentBuildStale = true;
 
-                var serialiser = new JavaScriptSerializer();
+                if (!File.Exists(TempCacheFilepath))
+                {
+                    // Propagate, can't use the file as it doesn't exist
+                    throw e;
+                }
 
-                var json = wc.DownloadString(XNativeConfig.GithubAPI_ReleasesLatest);
+                if ((DateTimeOffset.UtcNow -  File.GetLastWriteTimeUtc(TempCacheFilepath)).TotalDays >= XNativeConfig.GithubAPI_CacheMaxDaysAllowed)
+                {
+                    // Propagate, can't use the file as it's been stale for too long. 
+                    throw e;
+                }
+
+                // Go for the file  
+                var json = File.ReadAllText(TempCacheFilepath);
                 return serialiser.Deserialize<GitHubRelease>(json);
             }
         }
@@ -128,12 +186,19 @@ namespace ClientLauncher.Core.XNative
         {
             get
             {
+                var tags = new List<string>();
+
                 if (IsOutOfDate)
                 {
-                    return $"{GetPublicBuildString(CurrentBuildChannel)}__{CurrentVersion} [Update {LatestRelease.tag_name} Available]";
+                    tags.Add("[Update {LatestRelease.tag_name} Available]");
                 }
 
-                return $"{GetPublicBuildString(CurrentBuildChannel)}__{CurrentVersion}";
+                if (IsCurrentBuildStale)
+                {
+                    tags.Add("[Offline]");
+                }
+
+                return $"{GetPublicBuildString(CurrentBuildChannel)}__{CurrentVersion} {String.Join(" ", tags)}";
             }
         }
 
