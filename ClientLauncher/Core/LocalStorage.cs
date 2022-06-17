@@ -395,6 +395,24 @@ namespace ClientLauncher.Core
                         {
                             GamePathOverride = loadedData.GamePathOverride
                         };
+
+                        try
+                        {
+                            // Purge the LauncherBackground if the revision changes
+                            string GameDir = FalloutFinder.GameDir(this);
+
+                            if (GameDir != null)
+                            {
+                                if (Directory.Exists(GameDir + "\\nvmp\\res"))
+                                {
+                                    if (File.Exists(GameDir + "\\nvmp\\res\\LauncherBackground.png"))
+                                    {
+                                        File.Delete(GameDir + "\\nvmp\\res\\LauncherBackground.png");
+                                    }
+                                }
+                            }
+                        } catch (Exception) { }
+
                         Save();
                     }
 
