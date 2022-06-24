@@ -28,8 +28,8 @@ namespace ClientLauncher
     {
         // Global constants
 
-#if DEBUG && false
-        private static readonly string BroadcastServer = "http://localhost:5000/";
+#if DEBUG
+        private static readonly string BroadcastServer = "http://localhost:8030/";
 #else
         private static readonly string BroadcastServer = "https://nv-mp.com/";
 #endif

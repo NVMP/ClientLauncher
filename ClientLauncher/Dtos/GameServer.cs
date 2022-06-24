@@ -37,7 +37,7 @@ namespace ClientLauncher.Dtos
         public string Name { get; set; }
 
         [DataMember(Name = "description")]
-        public string Description { get; set; } = "A New Vegas Multiplayer server";
+        public string Description { get; set; }
 
         [DataMember(Name = "ip")]
         public string IP { get; set; }
