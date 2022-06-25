@@ -34,6 +34,8 @@ namespace ClientLauncher
         private static readonly string BroadcastServer = "https://nv-mp.com/";
 #endif
 
+        private static readonly int TimerIntervalQueryServers = 60 * 1000;
+
         // Services and instances for client auth
 #if !NEXUS_CANDIDATE
         public GithubPatchService   PatchService;
@@ -70,6 +72,8 @@ namespace ClientLauncher
         private Windows.About                AboutWindowInstance;
         private Windows.JoiningServerDisplay JoiningWindowInstance;
         private Windows.ManuallyJoinServerDisplay ManuallyJoinServerWindowInstance;
+
+        private System.Timers.Timer QueryTimer;
 
         private bool  IsQuerying;
         private int   BlurLevel;
@@ -182,6 +186,19 @@ namespace ClientLauncher
                 }
 #endif
                 HasGamePatched = true;
+
+                QueryTimer = new System.Timers.Timer
+                {
+                    Interval = TimerIntervalQueryServers
+                };
+                QueryTimer.Elapsed += (_,__) => QueryServers();
+                QueryTimer.Start();
+
+                // run it async so it doesn't block the UI
+                Task.Run(() =>
+                {
+                    QueryServers();
+                });
 
                 new Thread(delegate ()
                 {
