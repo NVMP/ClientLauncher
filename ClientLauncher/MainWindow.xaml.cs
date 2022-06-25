@@ -137,12 +137,14 @@ namespace ClientLauncher
             ServerListCollection = new ObservableCollection<DtoGameServer>();
             ServerList.ItemsSource = ServerListCollection;
 
+#if !NEXUS_CANDIDATE
             // If this launcher is not the launcher inside the fallout dir, then we need to switch to it to 
             // ensure that any patching that happens returns back to the original launcher.
             if (Environment.GetEnvironmentVariable(XNativeConfig.Patching_ForkingVariable) == null)
             {
                 VerifyOrRunOtherGameLauncher(falloutDir, copyIfMissing: true);
             }
+#endif
 
             // Show the fallout folder name in the root window
             Title = $"{Title} - {Path.GetFileName(falloutDir)}";
