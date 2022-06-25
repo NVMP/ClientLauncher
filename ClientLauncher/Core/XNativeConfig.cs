@@ -9,7 +9,7 @@ namespace ClientLauncher.Core
     public static class XNativeConfig
     {
         // Used to query new updates to NV:MP's backend, and if the build supports it, to automatically patch from
-        public static string GithubAPI_ReleasesLatest = "https://api.github.com/repos/NVMP_A/client-release/releases/latest";
+        public static string GithubAPI_ReleasesLatest = "https://api.github.com/repos/NVMP/ClientDistribution/releases/latest";
 
         public static string GithubAPI_BetaReleasesLatest = null;
 
