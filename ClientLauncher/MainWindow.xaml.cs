@@ -964,7 +964,6 @@ namespace ClientLauncher
             game.StartInfo.Arguments            = $"{server.IP} {server.Port} {installation.GameID} {HttpUtility.UrlEncode(token)} \"{modsList}\"";
             game.StartInfo.UseShellExecute      = true;
             game.StartInfo.WorkingDirectory     = installation.GameDirectory;
-            game.StartInfo.Verb                 = "runas";
             game.EnableRaisingEvents            = true;
             game.Exited += delegate (object sender, EventArgs e)
             {
