@@ -52,6 +52,7 @@ namespace ClientLauncher.Core.XNative
 
             IPEndPoint listenEndPoint = null;
             Host = new ENetHost(listenEndPoint, 1, 1);
+            Host.CompressWithRangeCoder();
         }
 
         public void Shutdown()

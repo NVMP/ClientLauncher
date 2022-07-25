@@ -34,7 +34,7 @@ namespace ClientLauncher
         private static readonly string BroadcastServer = "https://nv-mp.com/";
 #endif
 
-        private static readonly int TimerIntervalQueryServers = 60 * 1000;
+        private static readonly int TimerIntervalQueryServers = 60 * 1000 * 2;
 
         // Services and instances for client auth
 #if !NEXUS_CANDIDATE
@@ -134,6 +134,12 @@ namespace ClientLauncher
             InitializeComponent();
             LoadCustomBackground();
 
+            var rng = new Random();
+            if ((rng.Next() % 7) == 0)
+            {
+                SupportMsg.Visibility = Visibility.Visible;
+            }
+
             ServerListCollection = new ObservableCollection<DtoGameServer>();
             ServerList.ItemsSource = ServerListCollection;
 
@@ -208,7 +214,6 @@ namespace ClientLauncher
                     Dispatcher.Invoke(() =>
                     {
                         var dbgServerList = new List<DtoGameServer>();
-                        var rng = new Random();
 
                         Func<string> randomIPGen = () =>
                         {
@@ -745,6 +750,16 @@ namespace ClientLauncher
                 AboutWindowInstance.Closed += DialogBoxClosed;
                 AboutWindowInstance.ShowDialog();
             }
+        }
+
+        public void Patreon_Click(object sender, RoutedEventArgs e)
+        {
+            Process.Start("https://www.patreon.com/newvegasmp");
+        }
+
+        public void KoFi_Click(object sender, RoutedEventArgs e)
+        {
+            Process.Start("https://ko-fi.com/newvegasmp");
         }
 
         public void Discord_Click(object sender, RoutedEventArgs e)

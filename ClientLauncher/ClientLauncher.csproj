@@ -399,6 +399,12 @@
   <ItemGroup>
     <Folder Include="Messages\" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Res\patreon.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Res\kofi.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>

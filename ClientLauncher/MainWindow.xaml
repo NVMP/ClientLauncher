@@ -293,7 +293,7 @@
             </Border.Background>
         </Border>
         <Border>
-            <StackPanel Orientation="Horizontal" Margin="20,20,-1051,583">
+            <StackPanel Orientation="Horizontal" Margin="20,20,-511,583">
                 <Button x:Name="AboutButton"
                         Margin="0,0,10,0"
                         Click="About_Click"
@@ -317,6 +317,38 @@
                        Content="{Binding CurrentVersionAndChannel}"
                        Foreground="White"
                        Width="250"/>
+            </StackPanel>
+        </Border>
+        <Border>
+            <StackPanel Orientation="Horizontal" Margin="0,20,-1047,0" Height="38" VerticalAlignment="Top" HorizontalAlignment="Right"  Width="621" FlowDirection="RightToLeft">
+                <Button Click="KoFi_Click"
+                        FlowDirection="LeftToRight"
+                        Margin="0,-5,0,-6"
+                        Width="46"
+                        ToolTip="Support us on Ko-Fi!"
+                        Style="{DynamicResource InfoButton}"
+                        Background="{x:Null}" BorderBrush="{x:Null}"  Foreground="{x:Null}">
+                    <Image Source="/Res/kofi.png"/>
+                </Button>
+                <Button Click="Patreon_Click"
+                        FlowDirection="LeftToRight"
+                        Margin="0,0,0,0"
+                        Width="42"
+                        ToolTip="Support us on Patreon"
+                        Style="{DynamicResource InfoButton}"
+                        Background="{x:Null}" BorderBrush="{x:Null}"  Foreground="{x:Null}"
+                        HorizontalAlignment="Right">
+                    <Image Source="/Res/patreon.png" Width="23" Height="23" />
+                </Button>
+                <Label 
+                    x:Name="SupportMsg"
+                    Visibility="Hidden"
+                    FlowDirection="LeftToRight"
+                    Margin="10,5,0,5"
+                       Content="As a small team, your support helps us cover server costs and maintain the project!"
+                       HorizontalAlignment="Right"
+                       Foreground="White"/>
+
             </StackPanel>
         </Border>
     </Grid>
