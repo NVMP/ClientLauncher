@@ -356,7 +356,7 @@
     </COMReference>
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Res\granda1.png" />
+    <Resource Include="Res\StaticBackgrounds\granda1.png" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Res\shield.png" />
