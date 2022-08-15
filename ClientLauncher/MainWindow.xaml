@@ -351,5 +351,6 @@
 
             </StackPanel>
         </Border>
+        <Label x:Name="BackgroundAuthor" Content="Unknown Background Author" Height="34" HorizontalContentAlignment="Right"  VerticalAlignment="Top" Foreground="#FF999999" HorizontalAlignment="Center" Background="{x:Null}" Width="234" Margin="26,585,65,0" Grid.Column="3"/>
     </Grid>
 </Window>

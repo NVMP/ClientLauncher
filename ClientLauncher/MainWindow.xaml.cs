@@ -67,6 +67,20 @@ namespace ClientLauncher
             "Zeta.esm",
         };
 
+        private class DynamicBackground
+        {
+            public string Filename { get; set; }
+            public string Author { get; set; }
+        }
+
+        static private DynamicBackground[] DynamicBackgrounds = new DynamicBackground[]
+        {
+            new DynamicBackground { Filename = "granda1.png", Author = "granda1" },
+            new DynamicBackground { Filename = "misterdjd.png", Author = "MISTERDJD" },
+            new DynamicBackground { Filename = "raccoon.png", Author = "A WHOLE Lotta Raccoons" },
+            new DynamicBackground { Filename = "rusty shackleford.png", Author = "Rusty Shackleford" }
+        };
+
         // Data
         private bool HasGamePatched;
         private Windows.About                AboutWindowInstance;
@@ -132,7 +146,16 @@ namespace ClientLauncher
 
             // Start the viewer up.
             InitializeComponent();
-            LoadCustomBackground();
+
+            // overrides
+            try
+            {
+                if (!LoadCustomBackground())
+                {
+                    LoadDynamicBackground();
+                }
+            }
+            catch { }
 
             var rng = new Random();
             if ((rng.Next() % 7) == 0)
@@ -380,7 +403,32 @@ namespace ClientLauncher
         /// Reads the data folder for a custom background image
         /// and if it exists, applies it to the browser window.
         /// </summary>
-        public void LoadCustomBackground()
+        public bool LoadCustomBackground()
+        {
+            string GameDir = FalloutFinder.GameDir(StorageService);
+
+            if (GameDir == null)
+                return false;
+
+            if (!Directory.Exists(GameDir + "\\nvmp\\res"))
+                return false;
+
+            if (File.Exists(GameDir + "\\nvmp\\res\\LauncherBackground.png"))
+            {
+                try {
+                    BackgroundPanel.ImageSource = new BitmapImage(new Uri(GameDir + "\\nvmp\\res\\LauncherBackground.png"));
+                    BackgroundAuthor.Content = $"Custom Background";
+                    return true;
+                } catch (Exception e)
+                {
+                    MessageBox.Show("Failed to load custom background, exception thrown. " + e.ToString());
+                }
+            }
+
+            return false;
+        }
+
+        public void LoadDynamicBackground()
         {
             string GameDir = FalloutFinder.GameDir(StorageService);
 
@@ -390,15 +438,15 @@ namespace ClientLauncher
             if (!Directory.Exists(GameDir + "\\nvmp\\res"))
                 return;
 
-            if (File.Exists(GameDir + "\\nvmp\\res\\LauncherBackground.png"))
-            {
-                try {
-                    BackgroundPanel.ImageSource = new BitmapImage(new Uri(GameDir + "\\nvmp\\res\\LauncherBackground.png"));
-                } catch (Exception e)
-                {
-                    MessageBox.Show("Failed to load custom background, exception thrown. " + e.ToString());
-                }
-            }
+            int totalDaysEver = (int)(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() / 1000 / 60 / 60 / 24);
+            int randomseed = (totalDaysEver / 7) - 1; /* -1 for the launch to use default bg */
+            var rng = new Random(randomseed);
+            var bg = DynamicBackgrounds[rng.Next(0, DynamicBackgrounds.Length - 1)];
+
+            var uri = new Uri($"pack://application:,,,/ClientLauncher;component/Res/StaticBackgrounds/{bg.Filename}", UriKind.Absolute);
+
+            BackgroundAuthor.Content = $"Background by {bg.Author}";
+            BackgroundPanel.ImageSource = new BitmapImage(uri);
         }
 
         public void OnWindowClosing(object sender, EventArgs e)

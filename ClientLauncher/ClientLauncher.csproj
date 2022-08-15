@@ -356,6 +356,9 @@
     </COMReference>
   </ItemGroup>
   <ItemGroup>
+    <Resource Include="Res\StaticBackgrounds\misterdjd.png" />
+    <Resource Include="Res\StaticBackgrounds\rusty shackleford.png" />
+    <Resource Include="Res\StaticBackgrounds\raccoon.png" />
     <Resource Include="Res\StaticBackgrounds\granda1.png" />
   </ItemGroup>
   <ItemGroup>
