@@ -531,7 +531,7 @@ namespace ClientLauncher
                     // Evaluate the ping
                     Task.Run(() =>
                     {
-                        if (PingServer(server))
+                        PingServer(server);
                         {
                             Dispatcher.Invoke(() =>
                             {
