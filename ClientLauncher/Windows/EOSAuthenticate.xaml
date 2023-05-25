@@ -1,0 +1,59 @@
+﻿<Window x:Class="ClientLauncher.Windows.EOSAuthenticate"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ClientLauncher.Windows"
+        mc:Ignorable="d"
+        Background="#FF1A1A1A"
+        ResizeMode="NoResize"
+        Icon="/Res/nvmp-logo-32x32.png"
+        WindowStartupLocation="CenterScreen"
+        Title="Authenticate with Epic Games" Height="208" Width="420">
+    <Window.Resources>
+
+
+        <Style x:Key="ButtonWhite">
+            <Setter Property="Control.Background" Value="#FFFFFFFF"/>
+            <Setter Property="Control.Foreground" Value="#000"/>
+            <Setter Property="Control.BorderBrush" Value="#FF323232"/>
+            <!-- UseLayoutRounding="False" VerticalContentAlignment="Center" Height="47" VerticalAlignment="Bottom" Margin="10,0,156.392,10"  FontSize="18.667" -->
+            <Setter Property="Control.UseLayoutRounding" Value="False"/>
+            <Setter Property="Control.VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Control.Height" Value="47"/>
+            <Setter Property="Control.VerticalAlignment" Value="Bottom"/>
+            <Setter Property="Control.Margin" Value="10,0,156.392,10"/>
+
+            <Setter Property="Control.Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+
+                        <Border Background="{TemplateBinding Background}" CornerRadius="15">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+    </Window.Resources>
+    <Grid>
+        <TextBlock Foreground="#FFF" Margin="30,30,30,0" TextWrapping="Wrap" Height="Auto"  VerticalAlignment="Top">
+            To play online with New Vegas: Multiplayer, you must authenticate with an Epic Games account, which will allow you to connect
+            to authorize with other servers.
+        </TextBlock>
+        <Button Name="SignIn_Button" Margin="100,0,100,30" Style="{DynamicResource ButtonWhite}" Height="47" VerticalAlignment="Bottom" Click="Button_Click" Visibility="Hidden">
+
+            <StackPanel Orientation="Horizontal">
+                <Image Source="/Res/epic_games.png" Height="30"></Image>
+                <TextBlock Padding="15,15,15,15">
+                <Bold>Sign in with Epic Games</Bold>
+                </TextBlock>
+            </StackPanel>
+        </Button>
+        <TextBlock Name="Authorizing_Button" Foreground="#CCC" Margin="30,0,30,30" VerticalAlignment="Bottom" Height="47" TextAlignment="Center" Padding="20,15,20,20" Visibility="Visible">
+            Authorizing with Epic Games...
+        </TextBlock>
+    </Grid>
+</Window>

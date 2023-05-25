@@ -16,8 +16,12 @@ using Newtonsoft.Json;
 using ClientLauncher.Core.XNative;
 using ClientLauncher.Dtos;
 using ClientLauncher.Core;
+#if EOS_SUPPORTED
+using ClientLauncher.Core.EOS;
+#endif
 using System.Linq;
 using System.Threading.Tasks;
+using System.ComponentModel;
 
 namespace ClientLauncher
 {
@@ -38,11 +42,14 @@ namespace ClientLauncher
 
         // Services and instances for client auth
 #if !NEXUS_CANDIDATE
-        public GithubPatchService   PatchService;
+        public GithubPatchService PatchService;
 #endif 
-        public ProgramVersioning    ProgramVersion;
-        public DiscordAuthenticator DiscordAuthenticatorService;
-        public LocalStorage         StorageService;
+        public ProgramVersioning ProgramVersion;
+        public LocalStorage StorageService;
+
+#if EOS_SUPPORTED
+        public IEOSManager EOSManager;
+#endif
 
         public GameActivityMonitor GameActivityMonitor;
 
@@ -83,14 +90,18 @@ namespace ClientLauncher
 
         // Data
         private bool HasGamePatched;
-        private Windows.About                AboutWindowInstance;
+        private Windows.About AboutWindowInstance;
         private Windows.JoiningServerDisplay JoiningWindowInstance;
         private Windows.ManuallyJoinServerDisplay ManuallyJoinServerWindowInstance;
 
         private System.Timers.Timer QueryTimer;
 
-        private bool  IsQuerying;
-        private int   BlurLevel;
+#if EOS_SUPPORTED
+        private System.Timers.Timer EOSUpdateTimer;
+#endif
+
+        private bool IsQuerying;
+        private int BlurLevel;
 
         public string GamePathOverride;
 
@@ -100,6 +111,9 @@ namespace ClientLauncher
         {
             get
             {
+                if (StorageService == null)
+                    return false;
+
                 var falloutDir = FalloutFinder.GameDir(StorageService);
                 if (falloutDir != null)
                 {
@@ -117,6 +131,10 @@ namespace ClientLauncher
             AboutWindowInstance = null;
             Closing += OnWindowClosing;
             BlurLevel = 0;
+
+#if EOS_SUPPORTED
+            EOSManager = new EOSManager();
+#endif
 
             if (System.Diagnostics.Process.GetProcessesByName(System.IO.Path.GetFileNameWithoutExtension(System.Reflection.Assembly.GetEntryAssembly().Location)).Count() > 1)
             {
@@ -201,9 +219,6 @@ namespace ClientLauncher
             }
 #endif
 #endif
-            DiscordAuthenticatorService = new DiscordAuthenticator(this, StorageService);
-            
-            DiscordAuthenticatorService.Initialize();
 
             CustomToken.Password = StorageService.CustomToken;
 
@@ -218,11 +233,10 @@ namespace ClientLauncher
 #endif
                 HasGamePatched = true;
 
-                QueryTimer = new System.Timers.Timer
-                {
+                QueryTimer = new System.Timers.Timer {
                     Interval = TimerIntervalQueryServers
                 };
-                QueryTimer.Elapsed += (_,__) => QueryServers();
+                QueryTimer.Elapsed += (_, __) => QueryServers();
                 QueryTimer.Start();
 
                 // run it async so it doesn't block the UI
@@ -330,10 +344,56 @@ namespace ClientLauncher
                         });
                     }
                 }).Start();
-                }
+            }
 
 
             Thread.Sleep(500);
+
+
+#if EOS_SUPPORTED
+            bool b_EOSInitialized = false;
+
+            try
+            {
+                b_EOSInitialized = EOSManager.Initialize();
+            }
+            catch (Exception e)
+            {
+                Trace.WriteLine(e.ToString());
+            }
+
+            if (!b_EOSInitialized)
+            {
+                MessageBox.Show($"Epic Online Services platform failed to initialize due to a configuration or installation error. ", "New Vegas: Multiplayer");
+                Close();
+                return;
+            }
+
+            EOSUpdateTimer = new System.Timers.Timer
+            {
+                Interval = 100
+            };
+            EOSUpdateTimer.Elapsed += (_, __) => Dispatcher.Invoke(EOSManager.Tick);
+            EOSUpdateTimer.Start();
+
+            if (EOSManager.User == null)
+            {
+                // Show the authentication window, if the window closes and the authentication still is not met - then close the program as an implicit
+                // closure of the program.
+                PushWindowBlur();
+
+                var eosAuthenticationWindow = new Windows.EOSAuthenticate(this);
+                eosAuthenticationWindow.ShowDialog();
+
+                if (EOSManager.User == null)
+                {
+                    Close();
+                    return;
+                }
+
+                PopWindowBlur();
+            }
+#endif
 
             if (!IsVisible)
             {
@@ -349,6 +409,17 @@ namespace ClientLauncher
             Topmost = true;  // important
             Topmost = false; // important
             Focus();         // important
+        }
+
+        protected override void OnClosing(CancelEventArgs e)
+        {
+            base.OnClosing(e);
+
+            EOSUpdateTimer.Stop();
+            QueryTimer.Stop();
+            
+            EOSUpdateTimer.Dispose();
+            QueryTimer.Dispose();
         }
 
         public void VerifyOrRunOtherGameLauncher(string falloutDir, bool copyIfMissing = false)
@@ -451,7 +522,9 @@ namespace ClientLauncher
 
         public void OnWindowClosing(object sender, EventArgs e)
         {
-            DiscordAuthenticatorService?.Shutdown();
+#if EOS_SUPPORTED
+            EOSManager?.Dispose();
+#endif
             GameActivityMonitor?.Shutdown();
         }
 
@@ -1122,7 +1195,6 @@ namespace ClientLauncher
 
         protected void CancelJoiningServer(object sender, EventArgs e)
         {
-            DiscordAuthenticatorService.CancelAuthorization();
             JoiningWindowInstance = null;
         }
 
@@ -1203,15 +1275,15 @@ namespace ClientLauncher
                     {
                         case "discord":
                             {
-                                DiscordAuthenticator.AuthorizationStatus status = DiscordAuthenticatorService.AuthorizeToServer(server, ref existingToken);
-                                if (status == DiscordAuthenticator.AuthorizationStatus.InBrowserCaptive)
-                                {
-                                    capturingInBrowser = true;
-                                }
-                                else if (status == DiscordAuthenticator.AuthorizationStatus.ExistingKeyFound)
-                                {
-                                    capturingInBrowser = false;
-                                }
+                                //DiscordAuthenticator.AuthorizationStatus status = DiscordAuthenticatorService.AuthorizeToServer(server, ref existingToken);
+                                //if (status == DiscordAuthenticator.AuthorizationStatus.InBrowserCaptive)
+                                //{
+                                //    capturingInBrowser = true;
+                                //}
+                                //else if (status == DiscordAuthenticator.AuthorizationStatus.ExistingKeyFound)
+                                //{
+                                //    capturingInBrowser = false;
+                                //}
                                 break;
                             }
                         default:

@@ -17,7 +17,7 @@ namespace ClientLauncher.Core.XNative
         protected HttpListener InternalServer;
         protected Thread InternalThread;
 
-        protected bool Running;
+        protected CancellationTokenSource CancellationToken;
 
         public class AuthorizationReceivedArgs : EventArgs
         {
@@ -26,12 +26,13 @@ namespace ClientLauncher.Core.XNative
             public string ServerAuthResponse { get; set; }
         }
 
-        public delegate void AuthorizationReceivedEventHandler(object sender, AuthorizationReceivedArgs e);
+        public delegate void AuthorizationReceivedEventHandler(AuthorizationReceivedArgs e);
 
         public AuthorizationReceivedEventHandler DiscordAuthReceived;
 
         public DiscordTcpListener()
         {
+            CancellationToken = new CancellationTokenSource();
         }
 
         public void AttemptServerCreation(int port)
@@ -44,7 +45,7 @@ namespace ClientLauncher.Core.XNative
 
         protected void Receive()
         {
-            while (Running)
+            while (!CancellationToken.IsCancellationRequested)
             {
                 try
                 {
@@ -68,7 +69,7 @@ namespace ClientLauncher.Core.XNative
                             args.ServerClientID != null &&
                             DiscordAuthReceived != null)
                         {
-                            DiscordAuthReceived.Invoke(null, args);
+                            DiscordAuthReceived.Invoke(args);
                         }
                     }
 
@@ -89,7 +90,7 @@ namespace ClientLauncher.Core.XNative
             }
         }
 
-        public void Initialize()
+        public bool Initialize()
         {
             int attempts = 5;
             var rand = new Random();
@@ -99,10 +100,9 @@ namespace ClientLauncher.Core.XNative
                 {
                     AttemptServerCreation(ClientDiscordAuthListener);
 
-                    Running = true;
                     InternalThread = new Thread(Receive);
                     InternalThread.Start();
-                    break;
+                    return true;
                 }
                 catch (Exception e)
                 {
@@ -117,11 +117,12 @@ namespace ClientLauncher.Core.XNative
                 MessageBox.Show($"Could not start up the NV:MP Discord Tcp Listener, servers with Discord authentication may fail! Please make sure port {ClientDiscordAuthListener} is open!", "New Vegas: Multiplayer",
                     MessageBoxButton.OK, MessageBoxImage.Warning);
             }
+            return false;
         }
 
         public void Shutdown()
         {
-            Running = false;
+            CancellationToken.Cancel();
 
             if (InternalServer != null)
             {

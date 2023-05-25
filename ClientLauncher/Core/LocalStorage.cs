@@ -14,7 +14,7 @@ namespace ClientLauncher.Core
 {
     public class LocalStorage
     {
-        private static readonly int    InternalStorageRevision = 2;
+        private static readonly int    InternalStorageRevision = 3;
         private static readonly string InternalAppDataFolder = "NewVegasMultiplayer";
         private static readonly string InternalDataFilename = "newvegasmp.config";
 
@@ -213,6 +213,10 @@ namespace ClientLauncher.Core
         {
             [DataMember]
             public int Revision { get; set; } = InternalStorageRevision;
+
+            // The new Discord authorization which will log into Epic Games instead of using the direct Epic Games account. 
+            [DataMember]
+            public string DiscordAuthorizationBlob { get; set; } = null;
 
             [DataMember]
             public string CustomToken { get; set; } = "";

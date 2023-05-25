@@ -386,3 +386,7 @@ FodyWeavers.xsd
 # JetBrains Rider
 .idea/
 *.sln.iml
+
+# EOS SDK (not public)
+ClientLauncher/EOSSDK/*
+ClientLauncher/EOSSDK-Win32-Shipping.dll

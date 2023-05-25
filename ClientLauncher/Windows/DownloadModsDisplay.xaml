@@ -5,7 +5,12 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ClientLauncher"
         xmlns:gif="http://wpfanimatedgif.codeplex.com"
-        mc:Ignorable="d" Height="312.25" Width="576.5" Background="#FF1A1A1A" ResizeMode="NoResize" Icon="/Res/nvmp-logo-32x32.png" WindowStartupLocation="CenterScreen" Title="NV:MP - Mod Dependencies">
+        mc:Ignorable="d" Height="312.25" Width="576.5"
+        Background="#FF1A1A1A"
+        ResizeMode="NoResize"
+        Icon="/Res/nvmp-logo-32x32.png"
+        WindowStartupLocation="CenterScreen"
+        Title="NV:MP - Mod Dependencies">
     <Window.Resources>
 
         <Style x:Key="ButtonGrey">

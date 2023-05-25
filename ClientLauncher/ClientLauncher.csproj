@@ -1,5 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\packages\cef.redist.x86.113.1.4\build\cef.redist.x86.props" Condition="Exists('..\packages\cef.redist.x86.113.1.4\build\cef.redist.x86.props')" />
+  <Import Project="..\packages\cef.redist.x64.113.1.4\build\cef.redist.x64.props" Condition="Exists('..\packages\cef.redist.x64.113.1.4\build\cef.redist.x64.props')" />
   <Import Project="..\packages\PropertyChanged.Fody.3.3.3\build\PropertyChanged.Fody.props" Condition="Exists('..\packages\PropertyChanged.Fody.3.3.3\build\PropertyChanged.Fody.props')" />
   <Import Project="..\packages\Costura.Fody.4.1.0\build\Costura.Fody.props" Condition="Exists('..\packages\Costura.Fody.4.1.0\build\Costura.Fody.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
@@ -19,6 +21,7 @@
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
+    <TargetFrameworkProfile />
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -33,7 +36,6 @@
     <ApplicationVersion>1.1.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
-    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -215,16 +217,34 @@
       <HintPath>..\packages\WpfAnimatedGif.2.0.0\lib\net40\WpfAnimatedGif.dll</HintPath>
     </Reference>
   </ItemGroup>
+  <!-- we want to see if the EOS SDK is valid, if not, then allow building without EOS SDK support -->
+  <ItemGroup Condition="Exists('EOSSDK/')">
+    <Compile Include="EOSSDK\**\*.cs" />
+    <Content Include="EOSSDK-Win32-Shipping.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <PropertyGroup Condition="Exists('EOSSDK/')">
+    <DefineConstants>$(DefineConstants);EOS_SUPPORTED;EOS_PLATFORM_WINDOWS_32</DefineConstants>
+  </PropertyGroup>
   <ItemGroup>
     <ApplicationDefinition Include="App.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Core\EOS\EOSManager.cs" />
     <Compile Include="Core\XNativeConfig.cs" />
     <Compile Include="Core\XNative\DiscordRichPresence.cs" />
     <Compile Include="Core\XNative\GameActivityMonitor.cs" />
     <Compile Include="Core\XNative\ProgramVersioning.cs" />
     <Compile Include="Core\XNative\ServerProbe.cs" />
+    <Compile Include="DiscordSDK\ActivityManager.cs" />
+    <Compile Include="DiscordSDK\Constants.cs" />
+    <Compile Include="DiscordSDK\Core.cs" />
+    <Compile Include="DiscordSDK\ImageManager.cs" />
+    <Compile Include="DiscordSDK\LobbyManager.cs" />
+    <Compile Include="DiscordSDK\StorageManager.cs" />
+    <Compile Include="DiscordSDK\StoreManager.cs" />
     <Compile Include="Windows\About.xaml.cs">
       <DependentUpon>About.xaml</DependentUpon>
     </Compile>
@@ -241,6 +261,10 @@
     <Page Include="Windows\DownloadModsDisplay.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Windows\EOSAuthenticate.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Windows\ManuallyJoinServerDisplay.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -266,6 +290,9 @@
       <DependentUpon>DownloadModsDisplay.xaml</DependentUpon>
     </Compile>
     <Compile Include="Dtos\GameServer.cs" />
+    <Compile Include="Windows\EOSAuthenticate.xaml.cs">
+      <DependentUpon>EOSAuthenticate.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Windows\ManuallyJoinServerDisplay.xaml.cs">
       <DependentUpon>ManuallyJoinServerDisplay.xaml</DependentUpon>
     </Compile>
@@ -408,6 +435,17 @@
   <ItemGroup>
     <Resource Include="Res\kofi.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Res\epic_games.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Res\discord-mark-black.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="discord_game_sdk.dll">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
@@ -417,6 +455,8 @@
     <Error Condition="!Exists('..\packages\Costura.Fody.4.1.0\build\Costura.Fody.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Costura.Fody.4.1.0\build\Costura.Fody.props'))" />
     <Error Condition="!Exists('..\packages\PropertyChanged.Fody.3.3.3\build\PropertyChanged.Fody.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\PropertyChanged.Fody.3.3.3\build\PropertyChanged.Fody.props'))" />
     <Error Condition="!Exists('..\packages\Grpc.Core.2.43.0\build\net45\Grpc.Core.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Grpc.Core.2.43.0\build\net45\Grpc.Core.targets'))" />
+    <Error Condition="!Exists('..\packages\cef.redist.x64.113.1.4\build\cef.redist.x64.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\cef.redist.x64.113.1.4\build\cef.redist.x64.props'))" />
+    <Error Condition="!Exists('..\packages\cef.redist.x86.113.1.4\build\cef.redist.x86.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\cef.redist.x86.113.1.4\build\cef.redist.x86.props'))" />
   </Target>
   <Import Project="..\packages\Fody.6.4.0\build\Fody.targets" Condition="Exists('..\packages\Fody.6.4.0\build\Fody.targets')" />
   <PropertyGroup>

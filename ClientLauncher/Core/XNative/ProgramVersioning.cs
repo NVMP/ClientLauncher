@@ -216,7 +216,9 @@ namespace ClientLauncher.Core.XNative
             }
             catch (Exception)
             {
+#if !DEBUG
                 MessageBox.Show("Failed to parse latest release from patching services");
+#endif
             }
         }
     }

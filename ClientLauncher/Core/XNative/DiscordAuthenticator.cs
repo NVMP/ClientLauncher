@@ -48,7 +48,7 @@ namespace ClientLauncher.Core.XNative
             public int ExpiresIn { get; set; }
         }
 
-        protected void OnAuthorizationReceived(object sender, DiscordTcpListener.AuthorizationReceivedArgs args)
+        protected void OnAuthorizationReceived(DiscordTcpListener.AuthorizationReceivedArgs args)
         {
             if (AuthorizingAgainst != null &&
                 AuthorizingAgainst.AuthenticatorClientID == args.ServerClientID)
