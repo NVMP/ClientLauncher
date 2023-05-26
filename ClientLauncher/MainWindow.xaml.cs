@@ -45,6 +45,7 @@ namespace ClientLauncher
         public GithubPatchService PatchService;
 #endif 
         public ProgramVersioning ProgramVersion;
+        public DiscordAuthenticator DiscordAuthenticatorService;
         public LocalStorage StorageService;
 
 #if EOS_SUPPORTED
@@ -129,18 +130,25 @@ namespace ClientLauncher
             HasGamePatched = false;
             IsQuerying = false;
             AboutWindowInstance = null;
-            Closing += OnWindowClosing;
             BlurLevel = 0;
 
 #if EOS_SUPPORTED
             EOSManager = new EOSManager();
+            EOSManager.UserUpdated += EOSManager_UserUpdated;
 #endif
 
-            if (System.Diagnostics.Process.GetProcessesByName(System.IO.Path.GetFileNameWithoutExtension(System.Reflection.Assembly.GetEntryAssembly().Location)).Count() > 1)
+            string exeName = "NVMP";
+            var nvmpProcesses = Process.GetProcessesByName(exeName);
+            if (nvmpProcesses.Length > 1)
             {
-                MessageBox.Show($"The NV:MP launcher ({Process.GetCurrentProcess().ProcessName}) is already running! ", "New Vegas: Multiplayer");
-                Close();
-                return;
+                foreach (var process in nvmpProcesses)
+                {
+                    try
+                    {
+                        process.Kill();
+                    }
+                    catch { }
+                }
             }
 
             ENet.Managed.ManagedENet.Startup();
@@ -170,16 +178,16 @@ namespace ClientLauncher
             {
                 if (!LoadCustomBackground())
                 {
-                    LoadDynamicBackground();
+                    //LoadDynamicBackground();
                 }
             }
             catch { }
 
             var rng = new Random();
-            if ((rng.Next() % 7) == 0)
-            {
-                SupportMsg.Visibility = Visibility.Visible;
-            }
+            //if ((rng.Next() % 7) == 0)
+            //{
+            //    SupportMsg.Visibility = Visibility.Visible;
+            //}
 
             ServerListCollection = new ObservableCollection<DtoGameServer>();
             ServerList.ItemsSource = ServerListCollection;
@@ -219,6 +227,10 @@ namespace ClientLauncher
             }
 #endif
 #endif
+
+            DiscordAuthenticatorService = new DiscordAuthenticator(this, StorageService);
+
+            DiscordAuthenticatorService.Initialize();
 
             CustomToken.Password = StorageService.CustomToken;
 
@@ -371,7 +383,7 @@ namespace ClientLauncher
 
             EOSUpdateTimer = new System.Timers.Timer
             {
-                Interval = 100
+                Interval = 10
             };
             EOSUpdateTimer.Elapsed += (_, __) => Dispatcher.Invoke(EOSManager.Tick);
             EOSUpdateTimer.Start();
@@ -391,6 +403,20 @@ namespace ClientLauncher
                     return;
                 }
 
+                // Check the user's sanctioning. If they are sanctioned, display it and only offer to exit the application. Don't pop the blur until this
+                // query is complete, but we can render the window
+                if (EOSManager.User.Sanctions != null)
+                {
+                    var gameBan = EOSManager.User.Sanctions.Where(sanction => sanction.Type == EOSUserSanctionType.GameBan).FirstOrDefault();
+                    if (gameBan != null)
+                    {
+                        // Game ban found, throw up the suprise message and then quit.
+                        var gameBannedModal = new Windows.Modals.ModalGameBanned(gameBan);
+                        gameBannedModal.ShowDialog();
+                        Close();
+                        return;
+                    }
+                }
                 PopWindowBlur();
             }
 #endif
@@ -411,15 +437,40 @@ namespace ClientLauncher
             Focus();         // important
         }
 
+#if EOS_SUPPORTED
+        private void EOSManager_UserUpdated(IEOSCurrentUser user)
+        {
+            if (user == null)
+            {
+                AuthBar_Name.Content = "<invalid login>";
+            }
+            else if (user.DisplayName == null)
+            {
+                AuthBar_Name.Content = $"Authorizing...";
+            }
+            else
+            {
+                AuthBar_Name.Content = $"{user.DisplayName}";
+            }
+        }
+#endif 
+
         protected override void OnClosing(CancelEventArgs e)
         {
             base.OnClosing(e);
+
+            DiscordAuthenticatorService.Shutdown();
 
             EOSUpdateTimer.Stop();
             QueryTimer.Stop();
             
             EOSUpdateTimer.Dispose();
             QueryTimer.Dispose();
+
+#if EOS_SUPPORTED
+            EOSManager?.Dispose();
+#endif
+            GameActivityMonitor?.Shutdown();
         }
 
         public void VerifyOrRunOtherGameLauncher(string falloutDir, bool copyIfMissing = false)
@@ -518,14 +569,6 @@ namespace ClientLauncher
 
             BackgroundAuthor.Content = $"Background by {bg.Author}";
             BackgroundPanel.ImageSource = new BitmapImage(uri);
-        }
-
-        public void OnWindowClosing(object sender, EventArgs e)
-        {
-#if EOS_SUPPORTED
-            EOSManager?.Dispose();
-#endif
-            GameActivityMonitor?.Shutdown();
         }
 
         private void TryToInstallMSVC(string GameDir)
@@ -1275,15 +1318,29 @@ namespace ClientLauncher
                     {
                         case "discord":
                             {
-                                //DiscordAuthenticator.AuthorizationStatus status = DiscordAuthenticatorService.AuthorizeToServer(server, ref existingToken);
-                                //if (status == DiscordAuthenticator.AuthorizationStatus.InBrowserCaptive)
-                                //{
-                                //    capturingInBrowser = true;
-                                //}
-                                //else if (status == DiscordAuthenticator.AuthorizationStatus.ExistingKeyFound)
-                                //{
-                                //    capturingInBrowser = false;
-                                //}
+                                // TODO:  Make sure Discord is authorized.
+                                if (!EOSManager.User.LinkedAuths.Contains(EOSLoginType.Discord))
+                                {
+                                    // Request it through the modal. 
+                                    var linkageModal = new Windows.Modals.ModalEOSLinkDiscord(EOSManager);
+                                    linkageModal.ShowDialog();
+
+                                    if (!EOSManager.User.LinkedAuths.Contains(EOSLoginType.Discord))
+                                    {
+                                        ShowError("Discord Authorization failed");
+                                        return;
+                                    }
+                                }
+
+                                DiscordAuthenticator.AuthorizationStatus status = DiscordAuthenticatorService.AuthorizeToServer(server, ref existingToken);
+                                if (status == DiscordAuthenticator.AuthorizationStatus.InBrowserCaptive)
+                                {
+                                    capturingInBrowser = true;
+                                }
+                                else if (status == DiscordAuthenticator.AuthorizationStatus.ExistingKeyFound)
+                                {
+                                    capturingInBrowser = false;
+                                }
                                 break;
                             }
                         default:
@@ -1386,6 +1443,28 @@ namespace ClientLauncher
                 ManuallyJoinServerWindowInstance.Closed += DialogBoxClosed;
                 ManuallyJoinServerWindowInstance.ShowDialog();
             }
+        }
+
+        private void AuthBar_Name_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            Hide();
+
+            // Logs out
+            EOSManager.LogoutFromPersistent((IEOSLoginResult result) =>
+            {
+                // Show the authentication window, if the window closes and the authentication still is not met - then close the program as an implicit
+                // closure of the program.
+                var eosAuthenticationWindow = new Windows.EOSAuthenticate(this);
+                eosAuthenticationWindow.ShowDialog();
+
+                if (EOSManager.User == null)
+                {
+                    Close();
+                    return;
+                }
+
+                Show();
+            });
         }
     }
 }

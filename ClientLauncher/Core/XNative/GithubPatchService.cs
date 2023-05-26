@@ -48,6 +48,18 @@ namespace ClientLauncher.Core.XNative
 
             Trace.WriteLine("Forking process..");
 
+            // Clean up temp files
+            try
+            {
+                File.Delete(Path.GetTempPath() + "NVMP.exe");
+            }
+            catch { }
+            try
+            {
+                File.Delete(Directory.GetCurrentDirectory() + "\\nvmp_launcher.temp.exe");
+            }
+            catch { }
+
             string FileNameTemp;
             try
             {
@@ -55,6 +67,7 @@ namespace ClientLauncher.Core.XNative
                 // Copy current process into temporary location.
                 FileNameTemp = Path.GetTempPath() + "NVMP.exe";
                 Trace.WriteLine("Temp file is " + FileNameTemp);
+
             } catch (Exception e)
             {
                 MessageBox.Show("Could not pre-patch executable, the temporary path query failed!\n\nDetails: \n" + e.Message, "New Vegas: Multiplayer");
@@ -63,6 +76,7 @@ namespace ClientLauncher.Core.XNative
 
             string CurrentProcessPath = System.Reflection.Assembly.GetEntryAssembly().Location;
             Trace.WriteLine("Current file is " + CurrentProcessPath);
+
             try
             {
                 File.Copy(CurrentProcessPath, FileNameTemp, true);
@@ -71,6 +85,7 @@ namespace ClientLauncher.Core.XNative
             {
                 // Try to fall back to a local exe
                 FileNameTemp = Directory.GetCurrentDirectory() + "\\nvmp_launcher.temp.exe";
+
                 try
                 {
                     File.Copy(CurrentProcessPath, FileNameTemp, true);

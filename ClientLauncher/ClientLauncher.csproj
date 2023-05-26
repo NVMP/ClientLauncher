@@ -303,12 +303,26 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="Windows\Modals\ModalEOSLinkDiscord.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Windows\Modals\ModalGameBanned.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Windows\PatchDisplay.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Windows\Modals\ModalEOSLinkDiscord.xaml.cs">
+      <DependentUpon>ModalEOSLinkDiscord.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Windows\Modals\ModalGameBanned.xaml.cs">
+      <DependentUpon>ModalGameBanned.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Windows\PatchDisplay.xaml.cs">
       <DependentUpon>PatchDisplay.xaml</DependentUpon>
     </Compile>

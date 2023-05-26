@@ -20,6 +20,29 @@ namespace ClientLauncher.Windows
     public partial class EOSAuthenticate : Window
     {
         protected MainWindow ParentWindow;
+        protected IDictionary<string, string> FailureReasonsToDisplayReason = new Dictionary<string, string>()
+        {
+            { "AccessDenied", "Authorization rejected for Epic Games account" }
+        };
+
+        internal void TryToPresentFailureReason(string reason)
+        {
+            if (FailureReasonsToDisplayReason.TryGetValue(reason, out string value))
+            {
+                ErrorMessageLabel.Text = value;
+            }
+            else
+            {
+#if DEBUG
+                ErrorMessageLabel.Text = $"DEV ONLY: {reason}";
+#endif
+            }
+        }
+
+        internal void HideFailureReason()
+        {
+            ErrorMessageLabel.Text = "";
+        }
 
         public EOSAuthenticate(MainWindow parentWindow)
         {
@@ -28,12 +51,22 @@ namespace ClientLauncher.Windows
             ParentWindow = parentWindow;
             InitializeComponent();
 
+            Activate();
+            Topmost = true;  // important
+            Topmost = false; // important
+            Focus();         // important
+
             ParentWindow.EOSManager.TryAutoLogin((result) =>
             {
-                if (!result)
+                Activate();
+
+                if (!result.Success)
                 {
                     Authorizing_Button.Visibility = Visibility.Hidden;
                     SignIn_Button.Visibility = Visibility.Visible;
+
+                    // If the error can be understood, present the error message
+                    TryToPresentFailureReason(result.FailureReason);
                 }
                 else
                 {
@@ -44,12 +77,26 @@ namespace ClientLauncher.Windows
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
+            HideFailureReason();
+
+            // Before we try to log in as a new user through flow (non-auto), we want to flush any persistent login from EOS.
+            ParentWindow.EOSManager.LogoutFromPersistent();
+
             ParentWindow.EOSManager.PresentLogin((result) =>
             {
+                Activate();
 
-                if (result)
+                if (result.Success)
                 {
                     Close();
+                }
+                else
+                {
+                    Authorizing_Button.Visibility = Visibility.Hidden;
+                    SignIn_Button.Visibility = Visibility.Visible;
+
+                    // If the error can be understood, present the error message
+                    TryToPresentFailureReason(result.FailureReason);
                 }
             });
         }

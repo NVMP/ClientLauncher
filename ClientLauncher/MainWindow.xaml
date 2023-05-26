@@ -171,17 +171,17 @@
             </tb:TaskbarIcon.ContextMenu>
         </tb:TaskbarIcon>
 
-        <Border x:Name="MessageBorder" Margin="61,0,328,32" VerticalAlignment="Bottom" Grid.Column="2" Height="24" Visibility="Hidden">
+        <Border x:Name="MessageBorder" Margin="21,0,158,32" VerticalAlignment="Bottom" Grid.Column="2" Height="24" Visibility="Hidden">
 
             <Border.Background>
                 <LinearGradientBrush EndPoint="0,0" StartPoint="1,0" Opacity="0.8" GradientStops="{StaticResource PanelGradient}" />
             </Border.Background>
 
 
-            <TextBlock x:Name="MessageText_Control" Margin="4,4.667,0,0" TextWrapping="Wrap" Text="" Height="20" Foreground="#FFB23737" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+            <TextBlock x:Name="MessageText_Control" Margin="4,4.667,0,0" FontWeight="Bold" TextWrapping="Wrap" Text="" Height="20" Foreground="#FFB23737"  VerticalAlignment="Center"/>
         </Border>
 
-        <Border x:Name="NewsFeedBorder"  Grid.Column="2" Margin="61,136,61,61" Grid.ColumnSpan="2">
+        <Border x:Name="NewsFeedBorder"  Grid.Column="2" Margin="21,136,21,61" Grid.ColumnSpan="2">
 
             <Border.Background>
                 <LinearGradientBrush EndPoint="0,0" StartPoint="1,0" Opacity="0.8" GradientStops="{StaticResource PanelGradient}" />
@@ -250,7 +250,7 @@
                         VerticalContentAlignment="Center" 
                         Height="26" 
                         VerticalAlignment="Bottom" 
-                        Margin="815.833,0,10,41" 
+                        Margin="846.833,0,10,41" 
                         FontSize="12"
                         Style="{DynamicResource ButtonGrey}" >
                 </Button>
@@ -287,7 +287,7 @@
             </Grid>
 
         </Border>
-        <Border x:Name="Logo" BorderBrush="Black" BorderThickness="0" Grid.ColumnSpan="3" Margin="61,58,247.547,0" Height="73" VerticalAlignment="Top">
+        <Border x:Name="Logo" BorderBrush="Black" BorderThickness="0" Grid.ColumnSpan="3" Margin="21,68,350,0" Height="63" VerticalAlignment="Top">
             <Border.Background>
                 <ImageBrush ImageSource="/Res/nvmp-sex.png" Stretch="UniformToFill"/>
             </Border.Background>
@@ -318,6 +318,19 @@
                        Foreground="White"
                        Width="250"/>
             </StackPanel>
+        </Border>
+        <Border x:Name="AuthBar"  Margin="376,0,73,0" Grid.ColumnSpan="3" Height="33" VerticalAlignment="Top" CornerRadius="0,0,10,10" Cursor="Hand">
+            <Border.Background>
+                <LinearGradientBrush EndPoint="0,0" StartPoint="1,0" Opacity="0.8" GradientStops="{StaticResource PanelGradient}" />
+            </Border.Background>
+
+            <Grid VerticalAlignment="Top" Height="33">
+                <TextBlock TextAlignment="Center">
+                    <Label x:Name="AuthBar_Name" Foreground="#0F0" Padding="0,7,0,0" FontWeight="Bold" MouseLeftButtonDown="AuthBar_Name_MouseLeftButtonDown">
+                        authorizing...
+                    </Label>
+                </TextBlock>
+            </Grid>
         </Border>
         <Border>
             <StackPanel Orientation="Horizontal" Margin="0,20,-1047,0" Height="38" VerticalAlignment="Top" HorizontalAlignment="Right"  Width="621" FlowDirection="RightToLeft">

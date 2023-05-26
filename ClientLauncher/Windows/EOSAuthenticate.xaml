@@ -9,7 +9,7 @@
         ResizeMode="NoResize"
         Icon="/Res/nvmp-logo-32x32.png"
         WindowStartupLocation="CenterScreen"
-        Title="Authenticate with Epic Games" Height="208" Width="420">
+        Title="Authenticate with Epic Games" Height="217.333" Width="420">
     <Window.Resources>
 
 
@@ -39,21 +39,28 @@
 
     </Window.Resources>
     <Grid>
-        <TextBlock Foreground="#FFF" Margin="30,30,30,0" TextWrapping="Wrap" Height="Auto"  VerticalAlignment="Top">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="281*"/>
+            <ColumnDefinition Width="133*"/>
+        </Grid.ColumnDefinitions>
+        <TextBlock Foreground="#FFF" Margin="30,30,30,0" TextWrapping="Wrap" Height="Auto"  VerticalAlignment="Top" Grid.ColumnSpan="2">
             To play online with New Vegas: Multiplayer, you must authenticate with an Epic Games account, which will allow you to connect
             to authorize with other servers.
         </TextBlock>
-        <Button Name="SignIn_Button" Margin="100,0,100,30" Style="{DynamicResource ButtonWhite}" Height="47" VerticalAlignment="Bottom" Click="Button_Click" Visibility="Hidden">
-
-            <StackPanel Orientation="Horizontal">
-                <Image Source="/Res/epic_games.png" Height="30"></Image>
-                <TextBlock Padding="15,15,15,15">
-                <Bold>Sign in with Epic Games</Bold>
-                </TextBlock>
+        <Button Name="SignIn_Button" Margin="100,0,100,30" Style="{DynamicResource ButtonWhite}" VerticalAlignment="Bottom" Cursor="Hand" Click="Button_Click" Visibility="Hidden" Grid.ColumnSpan="2">
+            <StackPanel Orientation="Vertical">
+                <StackPanel Orientation="Horizontal" Height="47">
+                    <Image Source="/Res/epic_games.png" Height="30"></Image>
+                    <TextBlock Padding="15,5,15,15" Height="30" TextAlignment="Center">
+                        <Bold>Sign in with Epic Games</Bold>
+                    </TextBlock>
+                </StackPanel>
             </StackPanel>
         </Button>
-        <TextBlock Name="Authorizing_Button" Foreground="#CCC" Margin="30,0,30,30" VerticalAlignment="Bottom" Height="47" TextAlignment="Center" Padding="20,15,20,20" Visibility="Visible">
+        <TextBlock Name="Authorizing_Button" Foreground="#CCC" Margin="30,0,30,30" VerticalAlignment="Bottom" Height="47" TextAlignment="Center" Padding="20,15,20,20" Visibility="Visible" Grid.ColumnSpan="2">
             Authorizing with Epic Games...
+        </TextBlock>
+        <TextBlock Name="ErrorMessageLabel" Padding="15,5,15,15" Height="25" VerticalAlignment="Bottom" TextAlignment="Center" Foreground="#F00" FontSize="9" FontWeight="Bold" Grid.ColumnSpan="2">
         </TextBlock>
     </Grid>
 </Window>

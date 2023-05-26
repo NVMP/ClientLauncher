@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 
 namespace ClientLauncher.Core.XNative
 {
@@ -36,7 +37,27 @@ namespace ClientLauncher.Core.XNative
                     Directory.CreateDirectory(Path.GetDirectoryName(completeFileName));
                     continue;
                 }
-                file.ExtractToFile(completeFileName, true);
+
+                try
+                {
+                    file.ExtractToFile(completeFileName, true);
+                }
+                catch (Exception e)
+                {
+                    var StaticDLLs = new string[]
+                    {
+                        // These files will hardly change, and we can remove this patch if desired in the future.
+                        // We cannot patch them after the first update, as they are files loaded by the assembly themselves.
+                        // In future, maybe we unload them?
+                        "EOSSDK-Win32-Shipping.dll",
+                        "discord_game_sdk.dll"
+                    };
+
+                    if (!StaticDLLs.Contains(file.Name))
+                    {
+                        throw e;
+                    }
+                }
             }
         }
     }
