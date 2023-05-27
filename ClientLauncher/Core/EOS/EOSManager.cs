@@ -256,8 +256,15 @@ namespace ClientLauncher.Core.EOS
             DiscordSDKInstance = null;
         }
 
+        internal bool IsTicking = false;
+
         public void Tick()
         {
+            if (IsTicking)
+                return;
+
+            IsTicking = true;
+
             try
             {
                 PlatformInterfaceInstance?.Tick();
@@ -275,6 +282,8 @@ namespace ClientLauncher.Core.EOS
             {
                 Trace.WriteLine(e.ToString());
             }
+
+            IsTicking = false;
         }
 
         public bool Initialize()

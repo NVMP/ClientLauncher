@@ -326,7 +326,7 @@
 
             <Grid VerticalAlignment="Top" Height="33">
                 <TextBlock TextAlignment="Center">
-                    <Label x:Name="AuthBar_Name" Foreground="#0F0" Padding="0,7,0,0" FontWeight="Bold" MouseLeftButtonDown="AuthBar_Name_MouseLeftButtonDown">
+                    <Label x:Name="AuthBar_Name" Foreground="#0F0" Padding="0,7,0,0" FontWeight="Bold" MouseLeftButtonDown="AuthBar_Name_MouseLeftButtonDown" MouseRightButtonDown="AuthBar_Name_MouseRightButtonDown">
                         authorizing...
                     </Label>
                 </TextBlock>

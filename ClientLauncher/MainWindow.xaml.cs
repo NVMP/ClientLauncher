@@ -245,6 +245,7 @@ namespace ClientLauncher
 #endif
                 HasGamePatched = true;
 
+#if !DEBUG
                 QueryTimer = new System.Timers.Timer {
                     Interval = TimerIntervalQueryServers
                 };
@@ -256,6 +257,7 @@ namespace ClientLauncher
                 {
                     QueryServers();
                 });
+#endif
 
                 new Thread(delegate ()
                 {
@@ -385,7 +387,7 @@ namespace ClientLauncher
             {
                 Interval = 10
             };
-            EOSUpdateTimer.Elapsed += (_, __) => Dispatcher.Invoke(EOSManager.Tick);
+            EOSUpdateTimer.Elapsed += (_, __) => Dispatcher.Invoke(EOSManager.Tick, System.Windows.Threading.DispatcherPriority.Render);
             EOSUpdateTimer.Start();
 
             if (EOSManager.User == null)
@@ -400,6 +402,7 @@ namespace ClientLauncher
                 if (EOSManager.User == null)
                 {
                     Close();
+                    PopWindowBlur();
                     return;
                 }
 
@@ -414,9 +417,11 @@ namespace ClientLauncher
                         var gameBannedModal = new Windows.Modals.ModalGameBanned(gameBan);
                         gameBannedModal.ShowDialog();
                         Close();
+                        PopWindowBlur();
                         return;
                     }
                 }
+
                 PopWindowBlur();
             }
 #endif
@@ -462,10 +467,10 @@ namespace ClientLauncher
             DiscordAuthenticatorService.Shutdown();
 
             EOSUpdateTimer.Stop();
-            QueryTimer.Stop();
+            QueryTimer?.Stop();
             
             EOSUpdateTimer.Dispose();
-            QueryTimer.Dispose();
+            QueryTimer?.Dispose();
 
 #if EOS_SUPPORTED
             EOSManager?.Dispose();
@@ -1239,6 +1244,7 @@ namespace ClientLauncher
         protected void CancelJoiningServer(object sender, EventArgs e)
         {
             JoiningWindowInstance = null;
+            DiscordAuthenticatorService.CancelAuthorization();
         }
 
         public void ServerItem_Selected(object sender, EventArgs e)
@@ -1465,6 +1471,15 @@ namespace ClientLauncher
 
                 Show();
             });
+        }
+
+        private void AuthBar_Name_MouseRightButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            // Try to copy the account and product token
+            if (EOSManager.User != null)
+            {
+                Clipboard.SetText($"account_id: {EOSManager.User.AccountId}\nproduct_id: {EOSManager.User.ProductId}");
+            }
         }
     }
 }

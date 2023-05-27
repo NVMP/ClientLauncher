@@ -26,7 +26,7 @@ namespace ClientLauncher.Windows.Modals
         protected IEOSManager EOSManager;
         protected IDictionary<string, string> FailureReasonsToDisplayReason = new Dictionary<string, string>()
         {
-            { "LinkedToAnotherAccount", "This Discord account is already linked to another account." }
+            { "LinkedToAnotherAccount", "This Discord account is already linked to another account. " }
         };
 
         internal void TryToPresentFailureReason(string reason)
@@ -39,6 +39,8 @@ namespace ClientLauncher.Windows.Modals
             {
 #if DEBUG
                 AdditionalDetails.Text = $"DEV ONLY: {reason}";
+#else
+                AdditionalDetails.Text = $"There was an unexpected error.";
 #endif
             }
         }
@@ -59,14 +61,12 @@ namespace ClientLauncher.Windows.Modals
 
         }
 
-        private void TryPresentError(string reason)
-        {
-
-        }
-
         private void LinkExternally_Click(object sender, RoutedEventArgs e)
         {
             AdditionalDetails.Text = "";
+
+            LinkExternally.IsEnabled = false;
+            LinkExternally.Cursor = Cursors.Wait;
 
             EOSManager.ConnectExternalLoginType(EOSLoginType.Discord, (IEOSLinkageResult result) =>
             {
@@ -76,7 +76,9 @@ namespace ClientLauncher.Windows.Modals
                 }
                 else
                 {
-                    TryPresentError(result.FailureReason);
+                    LinkExternally.Cursor = Cursors.Hand;
+                    LinkExternally.IsEnabled = true;
+                    TryToPresentFailureReason(result.FailureReason);
                 }
             });
         }
