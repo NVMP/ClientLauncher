@@ -154,6 +154,12 @@ namespace ClientLauncher.Core.EOS
         void PresentLogin(Action<IEOSLoginResult> loggedIn = null);
 
         /// <summary>
+        /// Obtains the user's auth token.
+        /// </summary>
+        /// <returns></returns>
+        string GetProductAuthToken();
+
+        /// <summary>
         /// Attempts to auto-login via persistent storage.
         /// </summary>
         /// <param name="loggedIn"></param>
@@ -428,6 +434,21 @@ namespace ClientLauncher.Core.EOS
                     loggedIn?.Invoke(reason);
                 }
             });
+        }
+
+        public string GetProductAuthToken()
+        {
+            ProductUserId currentProductUserId = ProductUserId.FromString(CurrentUser.ProductId);
+
+            var copyIdTokenOptions = new Epic.OnlineServices.Connect.CopyIdTokenOptions();
+            copyIdTokenOptions.LocalUserId = currentProductUserId;
+
+            if (ConnectInterfaceInstance.CopyIdToken(ref copyIdTokenOptions, out Epic.OnlineServices.Connect.IdToken? outIdToken) == Result.Success)
+            {
+                return outIdToken.Value.JsonWebToken.ToString();
+            }
+
+            return null;
         }
 
         public void PresentLogin(Action<IEOSLoginResult> loggedIn = null)

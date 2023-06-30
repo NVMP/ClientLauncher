@@ -45,15 +45,6 @@ namespace ClientLauncher.Dtos
         [DataMember(Name = "port")]
         public ushort Port { get; set; }
 
-        [DataMember(Name = "authenticator")]
-        public string Authenticator { get; set; } = "Basic";
-
-        [DataMember(Name = "authenticator_clientid")]
-        public string AuthenticatorClientID { get; set; }
-
-        [DataMember(Name = "authenticator_url")]
-        public string AuthenticatorURL { get; set; }
-
         [DataMember(Name = "mods_download_url")]
         public string ModsDownloadURL { get; set; }
 
@@ -82,22 +73,6 @@ namespace ClientLauncher.Dtos
         public bool IsStarred { get; set; } = false;
 
         public bool IsPrivate { get; set; } = false;
-
-        public Visibility DiscordResourceVisibility
-        {
-            get
-            {
-                return (Authenticator != null && Authenticator == "discord") ? Visibility.Visible : Visibility.Collapsed;
-            }
-        }
-
-        public Visibility OtherAuthenticatorVisibility
-        {
-            get
-            {
-                return (Authenticator != null && Authenticator != "discord") ? Visibility.Visible : Visibility.Collapsed;
-            }
-        }
 
         public Visibility StarredResourceVisibility
         {

@@ -282,10 +282,8 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Core\XNative\DiscordAuthenticator.cs" />
     <Compile Include="Core\XNative\Extensions.cs" />
     <Compile Include="Core\XNative\GithubPatchService.cs" />
-    <Compile Include="Core\XNative\DiscordTcpListener.cs" />
     <Compile Include="Windows\DownloadModsDisplay.xaml.cs">
       <DependentUpon>DownloadModsDisplay.xaml</DependentUpon>
     </Compile>

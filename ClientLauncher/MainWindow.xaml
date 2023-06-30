@@ -225,16 +225,6 @@
                                             Trusted Server
                                         </Label>
                                     </Grid>
-                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Top" HorizontalAlignment="Right" Background="Transparent" Width="52.259">
-                                        <!-- authenticators -->
-                                        <Image Visibility="{Binding DiscordResourceVisibility}"
-                                               Source="/Res/discord.png" RenderOptions.BitmapScalingMode="HighQuality" Width="25" Height="25" HorizontalAlignment="Right"
-                                               ToolTip="Discord authentication required"/>
-                                        <Image Visibility="{Binding OtherAuthenticatorVisibility}"
-                                               Source="/Res/shield.png" RenderOptions.BitmapScalingMode="HighQuality" Width="25" Height="25" HorizontalAlignment="Right"
-                                               ToolTip="Authentication required"/>
-
-                                    </StackPanel>
                                 </Grid>
                             </DataTemplate>
                         </ListBox.ItemTemplate>

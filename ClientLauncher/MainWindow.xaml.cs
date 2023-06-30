@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Net.NetworkInformation;
-using System.Timers;
 using System.Threading;
 using System.Web;
 using System.Windows;
@@ -45,7 +44,6 @@ namespace ClientLauncher
         public GithubPatchService PatchService;
 #endif 
         public ProgramVersioning ProgramVersion;
-        public DiscordAuthenticator DiscordAuthenticatorService;
         public LocalStorage StorageService;
 
 #if EOS_SUPPORTED
@@ -228,10 +226,6 @@ namespace ClientLauncher
 #endif
 #endif
 
-            DiscordAuthenticatorService = new DiscordAuthenticator(this, StorageService);
-
-            DiscordAuthenticatorService.Initialize();
-
             CustomToken.Password = StorageService.CustomToken;
 
             // Patch if token is here.
@@ -300,7 +294,6 @@ namespace ClientLauncher
                                 IP = randomIPGen(),
                                 Port = randomPortGen(),
                                 Name = randomNameGen(),
-                                Authenticator = "discord",
                                 MaxPlayers = maxPlayers,
                                 NumPlayers = playerDensity >= 0.25 ? (int)((float)maxPlayers * playerDensity) : 0
                             };
@@ -319,7 +312,6 @@ namespace ClientLauncher
                                 IP = randomIPGen(),
                                 Port = randomPortGen(),
                                 Name = randomNameGen(),
-                                Authenticator = "discord",
                                 MaxPlayers = maxPlayers,
                                 NumPlayers = 45
                             };
@@ -333,7 +325,6 @@ namespace ClientLauncher
                             IP = "eden.nv-mp.com",
                             Port = 27017,
                             Name = "[OFFICIAL] Freeroam Server",
-                            Authenticator = "discord",
                             MaxPlayers = 45,
                             NumPlayers = 2
                         };
@@ -463,8 +454,6 @@ namespace ClientLauncher
         protected override void OnClosing(CancelEventArgs e)
         {
             base.OnClosing(e);
-
-            DiscordAuthenticatorService.Shutdown();
 
             EOSUpdateTimer.Stop();
             QueryTimer?.Stop();
@@ -1065,7 +1054,7 @@ namespace ClientLauncher
             return result;
         }
 
-        public void JoinServer(DtoGameServer server, string token = "")
+        public void JoinServer(DtoGameServer server)
         {
             if (JoiningWindowInstance != null)
             {
@@ -1082,11 +1071,6 @@ namespace ClientLauncher
             if (server.Mods != null)
             {
                 modsList = String.Join(",", server.Mods.Select(mod => mod.Name));
-            }
-
-            if (token.Length == 0)
-            {
-                token = "null";
             }
 
             // If the mods list ins't correctly populated, try to PROBE the server to see if we can grab this information
@@ -1143,9 +1127,42 @@ namespace ClientLauncher
             //
             GameActivityMonitor.ShutdownCurrentActivity();
 
+            // Get the EOS token and Product ID
+            if (EOSManager.User == null)
+            {
+                ShowError("Epic Online Services is not authenticated");
+                return;
+            }
+
+            string productId = EOSManager.User.ProductId;
+            string jwtToken = EOSManager.GetProductAuthToken();
+            if (jwtToken == null)
+            {
+                // Rome has fallen! Re-authenticate.
+                Hide();
+
+                // Logs out
+                EOSManager.LogoutFromPersistent((IEOSLoginResult result) =>
+                {
+                    // Show the authentication window, if the window closes and the authentication still is not met - then close the program as an implicit
+                    // closure of the program.
+                    var eosAuthenticationWindow = new Windows.EOSAuthenticate(this);
+                    eosAuthenticationWindow.ShowDialog();
+
+                    if (EOSManager.User == null)
+                    {
+                        Close();
+                        return;
+                    }
+
+                    Show();
+                });
+                return;
+            }
+
             var game = new Process();
             game.StartInfo.FileName             = installation.NVMPExe;
-            game.StartInfo.Arguments            = $"{server.IP} {server.Port} {installation.GameID} {HttpUtility.UrlEncode(token)} \"{modsList}\"";
+            game.StartInfo.Arguments            = $"{server.IP} {server.Port} {installation.GameID} {HttpUtility.UrlEncode(jwtToken)} {HttpUtility.UrlEncode(productId)} \"{modsList}\"";
             game.StartInfo.UseShellExecute      = true;
             game.StartInfo.WorkingDirectory     = installation.GameDirectory;
             game.EnableRaisingEvents            = true;
@@ -1244,7 +1261,6 @@ namespace ClientLauncher
         protected void CancelJoiningServer(object sender, EventArgs e)
         {
             JoiningWindowInstance = null;
-            DiscordAuthenticatorService.CancelAuthorization();
         }
 
         public void ServerItem_Selected(object sender, EventArgs e)
@@ -1255,20 +1271,9 @@ namespace ClientLauncher
                 return;
             }
 
-            DtoGameServer server = ServerListCollection[ServerList.SelectedIndex];
-
             Play_Control.IsEnabled = true;
-
-            if (server.Authenticator != "" && server.Authenticator != "basic")
-            {
-                Play_Control.Content = "Authenticate";
-                CustomToken.IsEnabled = false;
-            }
-            else
-            {
-                Play_Control.Content = "Join";
-                CustomToken.IsEnabled = true;
-            }
+            Play_Control.Content = "Authenticate";
+            CustomToken.IsEnabled = false;
         }
 
         public void Play_Click(object sender, RoutedEventArgs e)
@@ -1313,75 +1318,22 @@ namespace ClientLauncher
 
                 //
                 // Request Authentication
-                //
-                if (server.Authenticator != "" && server.Authenticator != "basic")
+                // TODO:  Make sure Discord is authorized.
+                if (!EOSManager.User.LinkedAuths.Contains(EOSLoginType.Discord))
                 {
-                    // The server has a custom authentication module, see if we can support it locally
-                    string existingToken = null;
-                    bool capturingInBrowser = false;
+                    // Request it through the modal. 
+                    var linkageModal = new Windows.Modals.ModalEOSLinkDiscord(EOSManager);
+                    linkageModal.ShowDialog();
 
-                    switch (server.Authenticator)
+                    if (!EOSManager.User.LinkedAuths.Contains(EOSLoginType.Discord))
                     {
-                        case "discord":
-                            {
-                                // TODO:  Make sure Discord is authorized.
-                                if (!EOSManager.User.LinkedAuths.Contains(EOSLoginType.Discord))
-                                {
-                                    // Request it through the modal. 
-                                    var linkageModal = new Windows.Modals.ModalEOSLinkDiscord(EOSManager);
-                                    linkageModal.ShowDialog();
-
-                                    if (!EOSManager.User.LinkedAuths.Contains(EOSLoginType.Discord))
-                                    {
-                                        ShowError("Discord Authorization failed");
-                                        return;
-                                    }
-                                }
-
-                                DiscordAuthenticator.AuthorizationStatus status = DiscordAuthenticatorService.AuthorizeToServer(server, ref existingToken);
-                                if (status == DiscordAuthenticator.AuthorizationStatus.InBrowserCaptive)
-                                {
-                                    capturingInBrowser = true;
-                                }
-                                else if (status == DiscordAuthenticator.AuthorizationStatus.ExistingKeyFound)
-                                {
-                                    capturingInBrowser = false;
-                                }
-                                break;
-                            }
-                        default:
-                            {
-                                ShowError("Unsupported authentication type '" + server.Authenticator + "'");
-                                break;
-                            }
-                    }
-
-                    if (capturingInBrowser)
-                    {
-                        JoiningWindowInstance = new Windows.JoiningServerDisplay
-                        {
-                            Title = $"NV:MP - Joining {server.Name}..."
-                        };
-                        JoiningWindowInstance.JoinStatus.Content = "Authorizing, please check your default browser...";
-                        JoiningWindowInstance.Closed += CancelJoiningServer;
-                        JoiningWindowInstance.ShowDialog();
-                        ShowError(null);
-                    }
-                    else if (existingToken != null)
-                    {
-                        JoinServer(server, existingToken);
-                        ShowError(null);
-                    }
-                    else
-                    {
-                        ShowError("Authentication Protocol Error");
+                        ShowError("Discord Authorization failed");
+                        return;
                     }
                 }
-                else
-                {
-                    JoinServer(server, CustomToken.Password);
-                    ShowError(null);
-                }
+
+                JoinServer(server);
+                ShowError(null);
             }
             catch (Exception exc)
             {
