@@ -444,16 +444,19 @@ namespace ClientLauncher
             {
                 AuthBar_Name.Content = "OFFLINE MODE";
                 AuthBar_Name.Foreground = new SolidColorBrush(Colors.Red);
+                ServerScroller.Visibility = Visibility.Hidden;
             }
             else if (user.DisplayName == null)
             {
                 AuthBar_Name.Content = $"Authorizing...";
                 AuthBar_Name.Foreground = new SolidColorBrush(Colors.Yellow);
+                ServerScroller.Visibility = Visibility.Hidden;
             }
             else
             {
                 AuthBar_Name.Content = $"{user.DisplayName}";
-                AuthBar_Name.Foreground = new SolidColorBrush(Colors.Green);
+                AuthBar_Name.Foreground = new SolidColorBrush(Color.FromArgb(255, 0, 255, 0));
+                ServerScroller.Visibility = Visibility.Visible;
             }
         }
 #endif 

@@ -196,7 +196,7 @@
                     <Label Padding="5px" Background="Transparent" Foreground="White" Margin="107.24,0,421,0">Name</Label>
                 </Grid>
 
-                <ScrollViewer Margin="10,79,10,72" VerticalScrollBarVisibility="Auto">
+                <ScrollViewer Name="ServerScroller" Margin="10,79,10,72" VerticalScrollBarVisibility="Auto" Visibility="Hidden">
                     <!-- implementation -->
                     <ListBox x:Name="ServerList"
                              SelectionChanged="ServerItem_Selected"
