@@ -12,9 +12,9 @@ namespace ClientLauncher.Core.XNative
     /// Establishes a small connection to the server to probe for mod information, player state, and general connectivity before
     /// handing off to the main server socket.
     /// </summary>
-    public class ServerProbe
+    public class ServerProbe : IDisposable
     {
-        static readonly uint ConnectionProbeHeader = 0x8008A000; // keep in sync with xnative
+        static readonly uint ConnectionProbeHeader = 0x8008A001; // keep in sync with xnative
 
         private ENetHost Host;
         private IPEndPoint Address;
@@ -55,9 +55,14 @@ namespace ClientLauncher.Core.XNative
             Host.CompressWithRangeCoder();
         }
 
+        public void Dispose()
+        {
+            Host?.Dispose();
+        }
+
         public void Shutdown()
         {
-            Host.Dispose();
+            Host?.Dispose();
         }
 
         public ProbeStatus Connect()

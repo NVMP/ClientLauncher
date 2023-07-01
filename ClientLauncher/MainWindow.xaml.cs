@@ -21,6 +21,7 @@ using ClientLauncher.Core.EOS;
 using System.Linq;
 using System.Threading.Tasks;
 using System.ComponentModel;
+using System.Windows.Media;
 
 namespace ClientLauncher
 {
@@ -378,7 +379,7 @@ namespace ClientLauncher
             {
                 Interval = 10
             };
-            EOSUpdateTimer.Elapsed += (_, __) => Dispatcher.Invoke(EOSManager.Tick, System.Windows.Threading.DispatcherPriority.Render);
+            EOSUpdateTimer.Elapsed += (_, __) => Dispatcher.Invoke(() => { try { EOSManager.Tick(); } catch { } }, System.Windows.Threading.DispatcherPriority.Render);
             EOSUpdateTimer.Start();
 
             if (EOSManager.User == null)
@@ -390,7 +391,7 @@ namespace ClientLauncher
                 var eosAuthenticationWindow = new Windows.EOSAuthenticate(this);
                 eosAuthenticationWindow.ShowDialog();
 
-                if (EOSManager.User == null)
+                if (!eosAuthenticationWindow.Succeeded)
                 {
                     Close();
                     PopWindowBlur();
@@ -399,17 +400,20 @@ namespace ClientLauncher
 
                 // Check the user's sanctioning. If they are sanctioned, display it and only offer to exit the application. Don't pop the blur until this
                 // query is complete, but we can render the window
-                if (EOSManager.User.Sanctions != null)
+                if (EOSManager.User != null)
                 {
-                    var gameBan = EOSManager.User.Sanctions.Where(sanction => sanction.Type == EOSUserSanctionType.GameBan).FirstOrDefault();
-                    if (gameBan != null)
+                    if (EOSManager.User.Sanctions != null)
                     {
-                        // Game ban found, throw up the suprise message and then quit.
-                        var gameBannedModal = new Windows.Modals.ModalGameBanned(gameBan);
-                        gameBannedModal.ShowDialog();
-                        Close();
-                        PopWindowBlur();
-                        return;
+                        var gameBan = EOSManager.User.Sanctions.Where(sanction => sanction.Type == EOSUserSanctionType.GameBan).FirstOrDefault();
+                        if (gameBan != null)
+                        {
+                            // Game ban found, throw up the suprise message and then quit.
+                            var gameBannedModal = new Windows.Modals.ModalGameBanned(gameBan);
+                            gameBannedModal.ShowDialog();
+                            Close();
+                            PopWindowBlur();
+                            return;
+                        }
                     }
                 }
 
@@ -438,15 +442,18 @@ namespace ClientLauncher
         {
             if (user == null)
             {
-                AuthBar_Name.Content = "<invalid login>";
+                AuthBar_Name.Content = "OFFLINE MODE";
+                AuthBar_Name.Foreground = new SolidColorBrush(Colors.Red);
             }
             else if (user.DisplayName == null)
             {
                 AuthBar_Name.Content = $"Authorizing...";
+                AuthBar_Name.Foreground = new SolidColorBrush(Colors.Yellow);
             }
             else
             {
                 AuthBar_Name.Content = $"{user.DisplayName}";
+                AuthBar_Name.Foreground = new SolidColorBrush(Colors.Green);
             }
         }
 #endif 
@@ -1082,35 +1089,64 @@ namespace ClientLauncher
                 // 
                 try
                 {
-                    var probe = new ServerProbe(server);
-                    var result = probe.Connect();
-
-                    if (result.State != ServerProbe.ProbeStatus.ProbeState.ReplyOK)
+                    using (var probe = new ServerProbe(server))
                     {
-                        var msg = "Unknown";
-                        switch (result.State)
+                        var result = probe.Connect();
+
+                        if (result.State != ServerProbe.ProbeStatus.ProbeState.ReplyOK)
                         {
-                            case ServerProbe.ProbeStatus.ProbeState.AwaitingReply:
-                                msg = "Awaiting Reply";
-                                break;
-                            case ServerProbe.ProbeStatus.ProbeState.ReplyMalformed:
-                                msg = "Reply Malformed";
-                                break;
-                            case ServerProbe.ProbeStatus.ProbeState.Unreachable:
-                                msg = "Unreachable";
-                                break;
-                            default: break;
+                            var msg = "Unknown";
+                            switch (result.State)
+                            {
+                                case ServerProbe.ProbeStatus.ProbeState.AwaitingReply:
+                                    msg = "Awaiting Reply";
+                                    break;
+                                case ServerProbe.ProbeStatus.ProbeState.ReplyMalformed:
+                                    msg = "Reply Malformed";
+                                    break;
+                                case ServerProbe.ProbeStatus.ProbeState.Unreachable:
+                                    msg = "Unreachable";
+                                    break;
+                                default: break;
+                            }
+
+                            MessageBox.Show($"Could not connect to {server.IP}:{server.Port} [{msg}]", "New Vegas: Multiplayer", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                            return;
                         }
 
-                        MessageBox.Show($"Could not connect to {server.IP}:{server.Port} [{msg}]", "New Vegas: Multiplayer", MessageBoxButton.OK, MessageBoxImage.Exclamation);
-                        return;
-                    }
+                        foreach (var accountType in result.Result.AccountTypesRequired)
+                        {
+                            switch (accountType)
+                            {
+                                case NetProbe.Types.OSExternalAccountType.EpicGames:
+                                    break;
+                                case NetProbe.Types.OSExternalAccountType.Discord:
+                                    if (EOSManager.User == null)
+                                        return;
 
-                    // The first entries of the result CSV are the mods available. If modsList doesnt exist (from a public server entry), then use the probe result
-                    // as this allows for internal reporting to always be a reliable fallback.
-                    if (result.Result.Mods.Count != 0)
-                    {
-                        modsList = String.Join(",", result.Result.Mods);
+                                    if (!EOSManager.User.LinkedAuths.Contains(EOSLoginType.Discord))
+                                    {
+                                        // Request it through the modal. 
+                                        var linkageModal = new Windows.Modals.ModalEOSLinkDiscord(EOSManager);
+                                        linkageModal.ShowDialog();
+
+                                        if (!EOSManager.User.LinkedAuths.Contains(EOSLoginType.Discord))
+                                        {
+                                            ShowError("Discord Authorization failed");
+                                            return;
+                                        }
+                                    }
+                                    break;
+                                default: break;
+                            }
+                        }
+
+                        // The first entries of the result CSV are the mods available. If modsList doesnt exist (from a public server entry), then use the probe result
+                        // as this allows for internal reporting to always be a reliable fallback.
+                        if (result.Result.Mods.Count != 0)
+                        {
+                            modsList = String.Join(",", result.Result.Mods);
+                        }
                     }
                 }
                 catch (Exception e)
@@ -1128,36 +1164,37 @@ namespace ClientLauncher
             GameActivityMonitor.ShutdownCurrentActivity();
 
             // Get the EOS token and Product ID
-            if (EOSManager.User == null)
-            {
-                ShowError("Epic Online Services is not authenticated");
-                return;
-            }
+            string jwtToken = "invalid_jwt_token";
+            string productId = "invalid_product_id";
 
-            string productId = EOSManager.User.ProductId;
-            string jwtToken = EOSManager.GetProductAuthToken();
-            if (jwtToken == null)
+            if (EOSManager.User != null)
             {
-                // Rome has fallen! Re-authenticate.
-                Hide();
-
-                // Logs out
-                EOSManager.LogoutFromPersistent((IEOSLoginResult result) =>
+                productId = EOSManager.User.ProductId;
+                jwtToken = EOSManager.GetProductAuthToken();
+                
+                if (jwtToken == null)
                 {
-                    // Show the authentication window, if the window closes and the authentication still is not met - then close the program as an implicit
-                    // closure of the program.
-                    var eosAuthenticationWindow = new Windows.EOSAuthenticate(this);
-                    eosAuthenticationWindow.ShowDialog();
+                    // Rome has fallen! Re-authenticate.
+                    Hide();
 
-                    if (EOSManager.User == null)
+                    // Logs out
+                    EOSManager.LogoutFromPersistent((IEOSLoginResult result) =>
                     {
-                        Close();
-                        return;
-                    }
+                        // Show the authentication window, if the window closes and the authentication still is not met - then close the program as an implicit
+                        // closure of the program.
+                        var eosAuthenticationWindow = new Windows.EOSAuthenticate(this);
+                        eosAuthenticationWindow.ShowDialog();
 
-                    Show();
-                });
-                return;
+                        if (EOSManager.User == null)
+                        {
+                            Close();
+                            return;
+                        }
+
+                        Show();
+                    });
+                    return;
+                }
             }
 
             var game = new Process();
@@ -1316,22 +1353,6 @@ namespace ClientLauncher
                     }
                 }
 
-                //
-                // Request Authentication
-                // TODO:  Make sure Discord is authorized.
-                if (!EOSManager.User.LinkedAuths.Contains(EOSLoginType.Discord))
-                {
-                    // Request it through the modal. 
-                    var linkageModal = new Windows.Modals.ModalEOSLinkDiscord(EOSManager);
-                    linkageModal.ShowDialog();
-
-                    if (!EOSManager.User.LinkedAuths.Contains(EOSLoginType.Discord))
-                    {
-                        ShowError("Discord Authorization failed");
-                        return;
-                    }
-                }
-
                 JoinServer(server);
                 ShowError(null);
             }
@@ -1387,6 +1408,13 @@ namespace ClientLauncher
             game.StartInfo.FileName = $"{falloutDir}\\{XNativeConfig.Exe_PrivateServer}";
             game.StartInfo.WorkingDirectory = falloutDir;
             game.StartInfo.UseShellExecute = true;
+
+            if (EOSManager.User == null)
+            {
+                // if we are in offline mode, start the server in offline mode too!
+                game.StartInfo.Arguments += "-eos_disable ";
+            }
+
             game.Start();
         }
 
@@ -1405,6 +1433,12 @@ namespace ClientLauncher
 
         private void AuthBar_Name_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
+            // Don't allow offline mode to relog unless they do a full restart
+            if (EOSManager.User == null)
+            {
+                return;
+            }
+
             Hide();
 
             // Logs out

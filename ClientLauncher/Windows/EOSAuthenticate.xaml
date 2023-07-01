@@ -43,11 +43,11 @@
             <ColumnDefinition Width="281*"/>
             <ColumnDefinition Width="133*"/>
         </Grid.ColumnDefinitions>
-        <TextBlock Foreground="#FFF" Margin="30,30,30,0" TextWrapping="Wrap" Height="Auto"  VerticalAlignment="Top" Grid.ColumnSpan="2">
+        <TextBlock Foreground="#FFF" Margin="30,15,30,0" TextWrapping="Wrap" Height="55"  VerticalAlignment="Top" Grid.ColumnSpan="2">
             To play online with New Vegas: Multiplayer, you must authenticate with an Epic Games account, which will allow you to connect
             to authorize with other servers.
         </TextBlock>
-        <Button Name="SignIn_Button" Margin="100,0,100,30" Style="{DynamicResource ButtonWhite}" VerticalAlignment="Bottom" Cursor="Hand" Click="Button_Click" Visibility="Hidden" Grid.ColumnSpan="2">
+        <Button Name="SignIn_Button" Margin="100,0,100,58" Style="{DynamicResource ButtonWhite}" VerticalAlignment="Bottom" Cursor="Hand" Click="Button_Click" Visibility="Hidden" Grid.ColumnSpan="2" Height="44">
             <StackPanel Orientation="Vertical">
                 <StackPanel Orientation="Horizontal" Height="47">
                     <Image Source="/Res/epic_games.png" Height="30"></Image>
@@ -57,6 +57,11 @@
                 </StackPanel>
             </StackPanel>
         </Button>
+        <StackPanel Name="OfflineMode_Label" Orientation="Vertical" Margin="100,0,100,25" VerticalAlignment="Bottom" Grid.ColumnSpan="2" Visibility="Hidden">
+            <TextBlock Height="28" TextAlignment="Center" Padding="8" Foreground="#999" FontSize="10" Cursor="Hand" MouseLeftButtonDown="OfflineMode_MouseLeftButtonDown">
+                Launch in offline mode
+            </TextBlock>
+        </StackPanel>
         <TextBlock Name="Authorizing_Button" Foreground="#CCC" Margin="30,0,30,30" VerticalAlignment="Bottom" Height="47" TextAlignment="Center" Padding="20,15,20,20" Visibility="Visible" Grid.ColumnSpan="2">
             Authorizing with Epic Games...
         </TextBlock>

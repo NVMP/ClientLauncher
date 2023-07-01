@@ -6,14 +6,16 @@ option csharp_namespace = "ClientLauncher.Core";
 // It dumps various external information
 message NetProbe {
 
-	enum AuthType {
-		BASIC   = 0;
-		DISCORD = 1;
+	enum OSExternalAccountType {
+		INVALID    = 0;
+		DUMMY      = 1;
+		EPIC_GAMES = 2;
+		DISCORD    = 3;
 	}
 
 	int32    NumPlayers = 1;
 	int32    MaxPlayers = 2;
-	AuthType AuthenticationType = 3;
 
+	repeated OSExternalAccountType AccountTypesRequired = 3;
 	repeated string Mods = 4;
 }

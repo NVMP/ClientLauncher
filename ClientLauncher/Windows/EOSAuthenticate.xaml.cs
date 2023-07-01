@@ -25,6 +25,8 @@ namespace ClientLauncher.Windows
             { "AccessDenied", "Authorization rejected for Epic Games account" }
         };
 
+        public bool Succeeded { get; private set; } = false;
+
         internal void TryToPresentFailureReason(string reason)
         {
             if (FailureReasonsToDisplayReason.TryGetValue(reason, out string value))
@@ -64,6 +66,7 @@ namespace ClientLauncher.Windows
                 {
                     Authorizing_Button.Visibility = Visibility.Hidden;
                     SignIn_Button.Visibility = Visibility.Visible;
+                    OfflineMode_Label.Visibility = Visibility.Visible;
 
                     // If the error can be understood, present the error message
                     TryToPresentFailureReason(result.FailureReason);
@@ -71,6 +74,7 @@ namespace ClientLauncher.Windows
                 else
                 {
                     Close(); // Close the window as authentication is already handled.
+                    Succeeded = true;
                 }
             });
         }
@@ -89,16 +93,24 @@ namespace ClientLauncher.Windows
                 if (result.Success)
                 {
                     Close();
+                    Succeeded = true;
                 }
                 else
                 {
                     Authorizing_Button.Visibility = Visibility.Hidden;
                     SignIn_Button.Visibility = Visibility.Visible;
+                    OfflineMode_Label.Visibility = Visibility.Visible;
 
                     // If the error can be understood, present the error message
                     TryToPresentFailureReason(result.FailureReason);
                 }
             });
+        }
+
+        private void OfflineMode_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            Close();
+            Succeeded = true;
         }
     }
 }

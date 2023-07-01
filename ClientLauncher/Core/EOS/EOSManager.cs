@@ -354,6 +354,9 @@ namespace ClientLauncher.Core.EOS
                 LocalUserId = EpicAccountId.FromString( CurrentUser.AccountId )
             };
             AuthInterfaceInstance.Logout(ref logoutOptions, null, null);
+
+            CurrentUser = null;
+            UserUpdated?.Invoke(CurrentUser);
         }
 
         public void LogoutFromPersistent(Action<IEOSLoginResult> loggedOut = null)
@@ -370,6 +373,9 @@ namespace ClientLauncher.Core.EOS
                 {
                     loggedOut?.Invoke(new EOSLoginResult { Success = true });
                 });
+
+                CurrentUser = null;
+                UserUpdated?.Invoke(CurrentUser);
 
                 return;
             }
@@ -390,6 +396,9 @@ namespace ClientLauncher.Core.EOS
                 {
                     loggedOut?.Invoke(new EOSLoginResult { Success = true });
                 });
+
+                CurrentUser = null;
+                UserUpdated?.Invoke(CurrentUser);
             });
         }
 
