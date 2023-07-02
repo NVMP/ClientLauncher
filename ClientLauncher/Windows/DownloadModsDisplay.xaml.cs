@@ -183,7 +183,7 @@ namespace ClientLauncher.Windows
 
                                         digest = sb.ToString();
 
-                                        validMod = digest == serverMod.ModInfo.Digest;
+                                        validMod = serverMod.ModInfo.Digest == "*" || digest == serverMod.ModInfo.Digest;
                                         Trace.WriteLine($"Our digest is {digest}, server is {serverMod.ModInfo.Digest}");
                                     }
                                 }
