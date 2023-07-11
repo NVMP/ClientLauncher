@@ -177,7 +177,7 @@ namespace ClientLauncher
             {
                 if (!LoadCustomBackground())
                 {
-                    //LoadDynamicBackground();
+                    LoadDynamicBackground();
                 }
             }
             catch { }
@@ -483,7 +483,7 @@ namespace ClientLauncher
             {
                 var expectedFolder = falloutDir;
                 var currentExeFolder = Path.GetDirectoryName(System.Reflection.Assembly.GetEntryAssembly().Location);
-                var currentExeName = Path.GetFileName(System.Reflection.Assembly.GetEntryAssembly().Location);
+                var currentExeName = "nvmp_launcher.exe";
                 if (expectedFolder != currentExeFolder)
                 {
                     // If there is a launcher in there with the same name as ours, then start that one up instead
