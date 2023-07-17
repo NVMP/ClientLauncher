@@ -136,7 +136,7 @@ namespace ClientLauncher
             EOSManager.UserUpdated += EOSManager_UserUpdated;
 #endif
 
-            string exeName = "NVMP";
+            string exeName = "nvmp_launcher";
             var nvmpProcesses = Process.GetProcessesByName(exeName);
             if (nvmpProcesses.Length > 1)
             {

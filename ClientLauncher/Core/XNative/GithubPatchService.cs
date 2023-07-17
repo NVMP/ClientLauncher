@@ -51,7 +51,7 @@ namespace ClientLauncher.Core.XNative
             // Clean up temp files
             try
             {
-                File.Delete(Path.GetTempPath() + "NVMP.exe");
+                File.Delete(Path.GetTempPath() + "nvmp_launcher.exe");
             }
             catch { }
             try
@@ -65,7 +65,7 @@ namespace ClientLauncher.Core.XNative
             {
 
                 // Copy current process into temporary location.
-                FileNameTemp = Path.GetTempPath() + "NVMP.exe";
+                FileNameTemp = Path.GetTempPath() + "nvmp_launcher.exe";
                 Trace.WriteLine("Temp file is " + FileNameTemp);
 
             } catch (Exception e)
