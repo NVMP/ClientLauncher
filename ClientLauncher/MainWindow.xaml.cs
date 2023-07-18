@@ -1178,24 +1178,8 @@ namespace ClientLauncher
                 if (jwtToken == null)
                 {
                     // Rome has fallen! Re-authenticate.
-                    Hide();
-
-                    // Logs out
-                    EOSManager.LogoutFromPersistent((IEOSLoginResult result) =>
-                    {
-                        // Show the authentication window, if the window closes and the authentication still is not met - then close the program as an implicit
-                        // closure of the program.
-                        var eosAuthenticationWindow = new Windows.EOSAuthenticate(this);
-                        eosAuthenticationWindow.ShowDialog();
-
-                        if (EOSManager.User == null)
-                        {
-                            Close();
-                            return;
-                        }
-
-                        Show();
-                    });
+                    string falloutDir = FalloutFinder.GameDir(StorageService);
+                    VerifyOrRunOtherGameLauncher(falloutDir, copyIfMissing: true);
                     return;
                 }
             }
