@@ -213,6 +213,28 @@ namespace ClientLauncher.Core.XNative
             }
         }
 
+        internal void PostPatchScripts()
+        {
+            // Ensure there is a start-menu entry
+            string ClientPath = Root + "\\nvmp_launcher.exe";
+            string CommonStartMenuPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonStartMenu);
+            string ApplicationStartMenuPath = Path.Combine(CommonStartMenuPath, "Programs", "NVMP");
+
+            if (!Directory.Exists(ApplicationStartMenuPath))
+                Directory.CreateDirectory(ApplicationStartMenuPath);
+
+            string ShortcutLocation = Path.Combine(ApplicationStartMenuPath, "New Vegas Multiplayer.lnk");
+
+            if (!File.Exists(ShortcutLocation))
+            {
+                IWshRuntimeLibrary.WshShell Shell = new IWshRuntimeLibrary.WshShell();
+                IWshRuntimeLibrary.IWshShortcut Shortcut = (IWshRuntimeLibrary.IWshShortcut)Shell.CreateShortcut(ShortcutLocation);
+                Shortcut.Description = "NV:MP Game Client";
+                Shortcut.TargetPath = ClientPath;
+                Shortcut.Save();
+            }
+        }
+
         public void Patch(bool ForceOver = false)
         {
             OpenModal();
@@ -266,6 +288,12 @@ namespace ClientLauncher.Core.XNative
 
                     Directory.Delete($"{Root}\\.nvmp_patch", true);
                     UpdateBinaryVersion(ParentWindow.ProgramVersion.LatestRelease.tag_name);
+
+                    try
+                    {
+                        PostPatchScripts();
+                    }
+                    catch { } 
 
                     SetModalStatus(Windows.PatchDisplay.EPatchStatus.kPatchStatus_Restarting);
                     Thread.Sleep(2000);
