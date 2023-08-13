@@ -129,14 +129,13 @@ namespace ClientLauncher.Windows
             set
             {
                 // Transform FilePath to be the local filepath
-                var falloutDir = FalloutFinder.GameDir(StorageService);
                 var rgx = new Regex("[^a-z.A-Z0-9 -_]");
 
                 var rebuild = new List<ServerModDisplay>();
 
                 foreach (DtoServerModInfo item in value)
                 {
-                    item.FilePath = $"{falloutDir}\\Data\\{item.Name}";
+                    item.FilePath = Path.Combine(FalloutDirectory, "Data", item.Name);
                     item.Name = rgx.Replace(item.Name, "");
 
                     rebuild.Add(new ServerModDisplay(this, item));
@@ -146,11 +145,13 @@ namespace ClientLauncher.Windows
                 ModsList.ItemsSource = ServerModList;
             }
         }
+        public string DownloadResourceURL { get; set; }
 
         public bool DependenciesResolved;
         public bool IsClosed { get; private set; }
-        public string DownloadResourceURL { get; set; }
-        public LocalStorage StorageService { get; set; }
+
+        internal string FalloutDirectory;
+        internal VirtualFolderHelper VFHelper;
 
         protected override void OnClosed(EventArgs e)
         {
@@ -164,13 +165,22 @@ namespace ClientLauncher.Windows
             DataContext = this;
         }
 
+        public void InitializeFolderDependencies(string serverConnectionString)
+        {
+            VFHelper = new VirtualFolderHelper();
+            VFHelper.ServerFolderName = serverConnectionString;
+            VFHelper.GameDirectory = FalloutDirectory;
+
+            VFHelper.Initialize();
+        }
+
         public void UpdateModStates(bool acquireMods = false)
         {
             Trace.WriteLine("Updating mod states...");
             bool hasAllModsInstalled = true;
             bool anyBlockedDownloads = false;
+            bool requiresMapping = false;
 
-            string falloutDir = FalloutFinder.GameDir(StorageService);
             foreach (ServerModDisplay serverMod in ServerModList)
             {
                 //
@@ -188,15 +198,15 @@ namespace ClientLauncher.Windows
                         // Is this mod on disk?
                         bool validMod = false;
 
-                        string fileName = $"{falloutDir}\\Data\\{serverMod.ModInfo.Name}";
-                        if (File.Exists(fileName))
+                        string activeFilePath;
+                        if (VFHelper.DoesFileExist(serverMod.ModInfo.Name, out activeFilePath))
                         {
                             // Is the digest the same as the one reported?
                             string digest = null;
 
                             try
                             {
-                                using (var file = File.OpenRead(fileName))
+                                using (var file = File.OpenRead(activeFilePath))
                                 {
                                     using (var digester = MD5.Create())
                                     {
@@ -218,6 +228,10 @@ namespace ClientLauncher.Windows
                             {
                                 Trace.Write("Digest Run Fail");
                             }
+                        }
+                        else
+                        {
+                            activeFilePath = Path.Combine(VFHelper.UniqueFolderName, serverMod.ModInfo.Name);
                         }
 
                         if (validMod)
@@ -242,7 +256,7 @@ namespace ClientLauncher.Windows
 
                                     bool canDownload = true;
 
-                                    if (File.Exists(fileName))
+                                    if (File.Exists(activeFilePath))
                                     {
                                         // If we are downloading and the file exists (this can happen if the CRC is invalid), then
                                         // make sure we prompt this before we overwrite
@@ -262,7 +276,7 @@ namespace ClientLauncher.Windows
                                             WebRequest req = WebRequest.Create(modDownloadUrl);
                                             using (var resp = req.GetResponse())
                                             {
-                                                using (var fs = File.Create(fileName))
+                                                using (var fs = File.Create(activeFilePath))
                                                 {
                                                     resp.GetResponseStream().CopyTo(fs);
 
@@ -320,6 +334,15 @@ namespace ClientLauncher.Windows
                     //Trace.WriteLine($"{serverMod.ModInfo.FilePath} not downloadable");
                     anyBlockedDownloads = true;
                 }
+                
+                if (serverMod.HasProcessed)
+                {
+                    // If the file is only in the virtual folder, we need to trigger mapping to get it accessible by Fallout
+                    if (!File.Exists(Path.Combine(VFHelper.GameDataFolder, serverMod.ModInfo.Name)))
+                    {
+                        requiresMapping = true;
+                    }
+                }
 
                 if (!serverMod.IsDownloaded)
                 {
@@ -333,7 +356,21 @@ namespace ClientLauncher.Windows
 
             if (hasAllModsInstalled)
             {
-                Close();
+                if (acquireMods || requiresMapping)
+                {
+                    if (!VFHelper.MapAllServerFiles(ServerModList.Select(_mod => _mod.ModInfo.Name)))
+                    {
+                        Install_All.IsEnabled = true;
+                    }
+                    else
+                    {
+                        Close();
+                    }
+                }
+                else
+                {
+                    Close();
+                }
             }
 
             DependenciesResolved = hasAllModsInstalled;

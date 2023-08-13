@@ -1321,11 +1321,12 @@ namespace ClientLauncher
                 {
                     var downloadModsWindow = new Windows.DownloadModsDisplay
                     {
-                        StorageService = StorageService,
+                        FalloutDirectory = FalloutFinder.GameDir(StorageService),
                         ServerMods = server.Mods,
-                        DownloadResourceURL = server.ModsDownloadURL
+                        DownloadResourceURL = server.ModsDownloadURL,
                     };
 
+                    downloadModsWindow.InitializeFolderDependencies($"{server.IP}_{server.Port}");
                     downloadModsWindow.UpdateModStates();
 
                     if (!downloadModsWindow.IsClosed)

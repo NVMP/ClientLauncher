@@ -233,6 +233,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Core\EOS\EOSManager.cs" />
+    <Compile Include="Core\VirtualFolderHelper.cs" />
     <Compile Include="Core\XNativeConfig.cs" />
     <Compile Include="Core\XNative\DiscordRichPresence.cs" />
     <Compile Include="Core\XNative\GameActivityMonitor.cs" />
