@@ -255,20 +255,6 @@ namespace ClientLauncher.Windows
                                     serverMod.IsDownloading = true;
 
                                     bool canDownload = true;
-
-                                    if (File.Exists(activeFilePath))
-                                    {
-                                        // If we are downloading and the file exists (this can happen if the CRC is invalid), then
-                                        // make sure we prompt this before we overwrite
-                                        var mboxResult = MessageBox.Show($"{serverMod.ModInfo.Name} already exists locally, overwrite with server copy?", "Mod Conflict",
-                                            MessageBoxButton.OKCancel, MessageBoxImage.Warning);
-                                        
-                                        if (mboxResult != MessageBoxResult.OK)
-                                        {
-                                            canDownload = false;
-                                        }
-                                    }
-
                                     if (canDownload)
                                     {
                                         try

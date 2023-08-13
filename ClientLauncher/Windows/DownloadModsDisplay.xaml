@@ -78,15 +78,17 @@
 
     </Window.Resources>
     <Grid Margin="0,0,0,63.333">
-        <Label Content="This server requires the following DLC or mods installed:" Margin="5,13,0,0" VerticalAlignment="Top" Height="26" Foreground="White" Width="330" HorizontalAlignment="Left" HorizontalContentAlignment="Center" RenderTransformOrigin="0.5,0.5">
-        </Label>
-        <Grid VerticalAlignment="Top" Margin="0,46,0,0" Height="27">
+        <Label Content="This server requires the following DLC or mods installed:"
+               Margin="15,15,0,0" VerticalAlignment="Top" Height="26" Foreground="White" Width="330" HorizontalAlignment="Left" HorizontalContentAlignment="Left" RenderTransformOrigin="0.5,0.5"/>
+        <Label Content="NOTE: A command line window may appear during initial installation of a server's mod files. This is our optional virtual directory system."
+               Margin="15,38,0,0" VerticalAlignment="Top" Height="26" Foreground="#CCC" Width="779" HorizontalAlignment="Left" HorizontalContentAlignment="Left" RenderTransformOrigin="0.5,0.5"/>
+        <Grid VerticalAlignment="Top" Margin="0,70,0,0" Height="27">
             <Label Padding="5px" Background="Transparent" Foreground="White" HorizontalAlignment="Left" Width="54" Margin="20,0,0,0">Filepath</Label>
             <Label Padding="5px" Background="Transparent" Foreground="White" Margin="615,0,0,0">State</Label>
         </Grid>
 
         <ListBox x:Name="ModsList" Background="{x:Null}" BorderBrush="{x:Null}" VerticalAlignment="Top" HorizontalContentAlignment="Stretch"
-                 Margin="16,69,16,0">
+                 Margin="16,100,16,0">
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <Grid Height="Auto" Margin="0px 0px 0px 0px">
