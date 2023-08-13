@@ -3,15 +3,17 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:ClientLauncher"
+        xmlns:converters="clr-namespace:ClientLauncher.Converters"
         xmlns:gif="http://wpfanimatedgif.codeplex.com"
-        mc:Ignorable="d" Height="312.25" Width="576.5"
+        mc:Ignorable="d" Height="500.25" Width="800.5"
         Background="#FF1A1A1A"
         ResizeMode="NoResize"
         Icon="/Res/nvmp-logo-32x32.png"
         WindowStartupLocation="CenterScreen"
         Title="NV:MP - Mod Dependencies">
     <Window.Resources>
+
+        <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
 
         <Style x:Key="ButtonGrey">
             <Setter Property="Control.Background" Value="#FF212121"/>
@@ -41,13 +43,46 @@
             </Style.Triggers>
         </Style>
 
+        <Style x:Key="ButtonGreen">
+            <Setter Property="Control.Background" Value="#FF416434"/>
+            <Setter Property="Control.Foreground" Value="White"/>
+            <Setter Property="Control.BorderBrush" Value="#FF323232"/>
+            <!-- UseLayoutRounding="False" VerticalContentAlignment="Center" Height="47" VerticalAlignment="Bottom" Margin="10,0,156.392,10"  FontSize="18.667" -->
+            <Setter Property="Control.UseLayoutRounding" Value="False"/>
+            <Setter Property="Control.VerticalContentAlignment" Value="Center"/>
+            <Setter Property="Control.Height" Value="47"/>
+            <Setter Property="Control.VerticalAlignment" Value="Bottom"/>
+            <Setter Property="Control.Margin" Value="10,0,156.392,10"/>
+
+            <Setter Property="Control.Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+
+                        <Border Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+
+            <Style.Triggers>
+                <Trigger Property="Control.IsMouseOver" Value="True">
+                    <Setter Property="Control.Background" Value="#FF618D51"/>
+                </Trigger>
+                <Trigger Property="Control.IsEnabled" Value="False">
+                    <Setter Property="Control.Background" Value="#FF41513C"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
     </Window.Resources>
     <Grid Margin="0,0,0,63.333">
         <Label Content="This server requires the following DLC or mods installed:" Margin="5,13,0,0" VerticalAlignment="Top" Height="26" Foreground="White" Width="330" HorizontalAlignment="Left" HorizontalContentAlignment="Center" RenderTransformOrigin="0.5,0.5">
         </Label>
-        <Grid VerticalAlignment="Top" Margin="0,46,10,0" Height="27">
-            <Label Padding="5px" Background="Transparent" Foreground="White" HorizontalAlignment="Right" Width="54" Margin="0,0,482,0">Filepath</Label>
-            <Label Padding="5px" Background="Transparent" Foreground="White" Margin="450,0,0,0">State</Label>
+        <Grid VerticalAlignment="Top" Margin="0,46,0,0" Height="27">
+            <Label Padding="5px" Background="Transparent" Foreground="White" HorizontalAlignment="Left" Width="54" Margin="20,0,0,0">Filepath</Label>
+            <Label Padding="5px" Background="Transparent" Foreground="White" Margin="615,0,0,0">State</Label>
         </Grid>
 
         <ListBox x:Name="ModsList" Background="{x:Null}" BorderBrush="{x:Null}" VerticalAlignment="Top" HorizontalContentAlignment="Stretch"
@@ -55,24 +90,43 @@
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <Grid Height="Auto" Margin="0px 0px 0px 0px">
-                        <TextBox VerticalAlignment="Center" Background="Transparent" Foreground="White" HorizontalAlignment="Left" Width="450" BorderThickness="0"  Text="{Binding FilePath}"
-                               TextWrapping="WrapWithOverflow" IsReadOnly="True" IsEnabled="False"/>
-                        <StackPanel Orientation="Horizontal" Margin="430,0,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Background="Transparent" Width="80">
-                            <!-- states -->
-                            <Image Visibility="{Binding IsDownloadedVis}"
-                                               Source="/Res/downloadsuccess.png" Width="25" Height="25" HorizontalAlignment="Left"
-                                               ToolTip="Ready"/>
-                            <Image Visibility="{Binding IsDownloadableVis}"
-                                               Source="/Res/downloadable.png" Width="25" Height="25" HorizontalAlignment="Left"
-                                               ToolTip="Download required"/>
-                            <Label Visibility="{Binding IsDownloadableVis}"
+                        <TextBox VerticalAlignment="Center"
+                                 Background="Transparent"
+                                 Foreground="White"
+                                 HorizontalAlignment="Left"
+                                 Width="450"
+                                 BorderThickness="0"
+                                 Text="{Binding FilePath}"
+                                 TextWrapping="WrapWithOverflow"
+                                 IsReadOnly="True"
+                                 IsEnabled="False"/>
+                        
+                        <StackPanel Orientation="Horizontal"
+                                    Margin="600,0,0,0"
+                                    VerticalAlignment="Top"
+                                    HorizontalAlignment="Left"
+                                    Background="Transparent"
+                                    Width="80">
+                            <!-- states --> 
+                            <Image Visibility="{Binding IsDownloaded, Converter={StaticResource BooleanToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged, NotifyOnSourceUpdated=True}"
+                                   Source="/Res/downloadsuccess.png"
+                                   Width="25" Height="25"
+                                   HorizontalAlignment="Left"
+                                   ToolTip="Ready"/>
+                            <Image Visibility="{Binding IsDownloadable, Converter={StaticResource BooleanToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged, NotifyOnSourceUpdated=True}"
+                                   Source="/Res/downloadable.png"
+                                   Width="25" Height="25"
+                                   HorizontalAlignment="Left"
+                                   ToolTip="Download required"/>
+                            
+                            <Label Visibility="{Binding IsDownloadable, Converter={StaticResource BooleanToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged, NotifyOnSourceUpdated=True}"
                                    Content="{Binding FileSizeMBText}"
                                    Foreground="White"
                                    />
-                            <Image Visibility="{Binding NotDownloadableVis}"
+                            <Image Visibility="{Binding NotDownloadable, Converter={StaticResource BooleanToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged, NotifyOnSourceUpdated=True}"
                                                Source="/Res/downloaderror.png" Width="25" Height="25" HorizontalAlignment="Left"
                                                ToolTip="Not Downloadable"/>
-                            <Image Visibility="{Binding IsDownloadingVis}"
+                            <Image Visibility="{Binding IsDownloading, Converter={StaticResource BooleanToVisibilityConverter}, UpdateSourceTrigger=PropertyChanged, NotifyOnSourceUpdated=True}"
                                                gif:ImageBehavior.AnimatedSource="/Res/loading.gif" Width="25" Height="25" HorizontalAlignment="Left"
                                                ToolTip="Processing"/>
                         </StackPanel>
@@ -80,7 +134,28 @@
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
-        <Button x:Name="Cancel" Click="Cancel_Click" Content="Cancel"  UseLayoutRounding="False" VerticalContentAlignment="Center" Height="26" VerticalAlignment="Bottom" Margin="10,0,0,-51.57" HorizontalAlignment="Left" Width="69.188" Style="{DynamicResource ButtonGrey}"/>
-        <Button x:Name="Install_All" Click="Install_All_Click" Content="Install all and join"  UseLayoutRounding="False" VerticalContentAlignment="Center" Height="26" VerticalAlignment="Bottom" Margin="438,0,0,-52.236" HorizontalAlignment="Left" Width="116.188" Style="{DynamicResource ButtonGrey}"/>
+        <Button x:Name="Cancel"
+                Click="Cancel_Click"
+                Content="Cancel"
+                UseLayoutRounding="False"
+                VerticalContentAlignment="Center"
+                Height="26"
+                VerticalAlignment="Bottom"
+                Margin="10,0,0,-51.57"
+                HorizontalAlignment="Left"
+                Width="69.188"
+                Style="{DynamicResource ButtonGrey}"/>
+
+        <Button x:Name="Install_All"
+                Click="Install_All_Click"
+                Content="Install all and join" 
+                UseLayoutRounding="False"
+                VerticalContentAlignment="Center"
+                Height="26"
+                VerticalAlignment="Bottom"
+                Margin="0,0,10,-52.236"
+                HorizontalAlignment="Right"
+                Width="116.188"
+                Style="{DynamicResource ButtonGreen}"/>
     </Grid>
 </Window>

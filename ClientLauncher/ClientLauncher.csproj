@@ -447,9 +447,7 @@
   <ItemGroup>
     <Resource Include="Res\icon_clyde_white_RGB.png" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Messages\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <Resource Include="Res\patreon.png" />
   </ItemGroup>

@@ -21,20 +21,76 @@ namespace ClientLauncher.Windows
 {
     public partial class DownloadModsDisplay : Window
     {
-        protected class ServerModDisplay
+        protected class ServerModDisplay : INotifyPropertyChanged
         {
             public DtoServerModInfo ModInfo;
 
-            public bool IsDownloaded { get; set; }
-            public bool IsDownloading { get; set; }
-            public bool HasProcessed { get; set; }
+            public event PropertyChangedEventHandler PropertyChanged;
+
+            internal DownloadModsDisplay ParentWindow;
+
+            internal bool _IsDownloaded = false;
+            internal bool _IsDownloading = false;
+            internal bool _HasProcessed = false;
+            internal float _FileSizeMB = 0.0f;
+
+            public bool IsDownloaded
+            {
+                get => _IsDownloaded;
+                set
+                {
+                    _IsDownloaded = value;
+                    OnPropertyChanged();
+                }
+            }
+
+            public bool IsDownloading
+            {
+            
+                get => _IsDownloading || !HasProcessed;
+                set
+                {
+                    _IsDownloading = value;
+                    OnPropertyChanged();
+                }
+            }
+
+            public bool HasProcessed
+            {
+
+                get => _HasProcessed;
+                set
+                {
+                    _HasProcessed = value;
+                    OnPropertyChanged();
+                }
+            }
+
+            public float FileSizeMB
+            {
+
+                get => _FileSizeMB;
+                set
+                {
+                    _FileSizeMB = value;
+                    OnPropertyChanged();
+                }
+            }
+
             public Task AcquisionTask { get; set; }
-            public float FileSizeMB { get; set; }
 
             public string StateMessage { get; set; }
 
-            public ServerModDisplay(DtoServerModInfo modInfo)
+            /// <summary>
+            /// Defines if the mod is downloadable by the current machine, but if the mod is already downloaded then disregard.
+            /// </summary>
+            public bool NotDownloadable => HasProcessed && !IsDownloaded && !ModInfo.Downloadable;
+
+            public bool IsDownloadable => HasProcessed && !IsDownloaded && ModInfo.Downloadable;
+
+            public ServerModDisplay(DownloadModsDisplay parentWindow, DtoServerModInfo modInfo)
             {
+                ParentWindow = parentWindow;
                 ModInfo = modInfo;
                 IsDownloaded = false;
                 HasProcessed = false;
@@ -52,24 +108,6 @@ namespace ClientLauncher.Windows
                 }
             }
 
-            public Visibility IsDownloadableVis
-            {
-                get
-                {
-                    return IsDownloadingVis == Visibility.Collapsed &&
-                           (ModInfo.Downloadable && !IsDownloaded) ? Visibility.Visible : Visibility.Collapsed;
-                }
-            }
-
-            public Visibility IsDownloadedVis
-            {
-                get
-                {
-                    return IsDownloadingVis == Visibility.Collapsed &&
-                           (IsDownloaded) ? Visibility.Visible : Visibility.Collapsed;
-                }
-            }
-
             public string FileSizeMBText
             {
                 get
@@ -78,21 +116,9 @@ namespace ClientLauncher.Windows
                 }
             }
 
-            public Visibility IsDownloadingVis
+            protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
             {
-                get
-                {
-                    return (IsDownloading || (AcquisionTask != null && !HasProcessed)) ? Visibility.Visible : Visibility.Collapsed; 
-                }
-            }
-
-            public Visibility NotDownloadableVis
-            {
-                get
-                {
-                    return IsDownloadingVis == Visibility.Collapsed &&
-                           (!ModInfo.Downloadable && !IsDownloaded) ? Visibility.Visible : Visibility.Collapsed;
-                }
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
             }
         }
 
@@ -113,7 +139,7 @@ namespace ClientLauncher.Windows
                     item.FilePath = $"{falloutDir}\\Data\\{item.Name}";
                     item.Name = rgx.Replace(item.Name, "");
 
-                    rebuild.Add(new ServerModDisplay(item));
+                    rebuild.Add(new ServerModDisplay(this, item));
                 }
 
                 ServerModList = new ObservableCollection<ServerModDisplay>(rebuild);
@@ -135,6 +161,7 @@ namespace ClientLauncher.Windows
         public DownloadModsDisplay()
         {
             InitializeComponent();
+            DataContext = this;
         }
 
         public void UpdateModStates(bool acquireMods = false)
@@ -149,7 +176,7 @@ namespace ClientLauncher.Windows
                 //
                 // Kick off any download tasks
                 //
-                if (serverMod.AcquisionTask == null || !serverMod.HasProcessed || acquireMods)
+                if (serverMod.AcquisionTask == null || (serverMod.ModInfo.Downloadable && !serverMod.IsDownloaded && acquireMods))
                 {
                     serverMod.StateMessage = "Looking up...";
                     serverMod.HasProcessed = false;
@@ -290,13 +317,13 @@ namespace ClientLauncher.Windows
                 //
                 if (!serverMod.IsDownloaded && !serverMod.ModInfo.Downloadable)
                 {
-                    Trace.WriteLine($"{serverMod.ModInfo.FilePath} not downloadable");
+                    //Trace.WriteLine($"{serverMod.ModInfo.FilePath} not downloadable");
                     anyBlockedDownloads = true;
                 }
 
                 if (!serverMod.IsDownloaded)
                 {
-                    Trace.WriteLine($"{serverMod.ModInfo.FilePath} not downloaded");
+                    //Trace.WriteLine($"{serverMod.ModInfo.FilePath} not downloaded");
                     hasAllModsInstalled = false;
                 }
             }
