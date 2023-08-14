@@ -68,7 +68,7 @@ namespace ClientLauncher.Core
 
         /// <summary>
         /// Sets up the virtual folder for the specified server, and creates any missing folders in the tree.
-        /// All previous virtual mappings are removed.
+        /// All previous virtual mappings are removed if this sever is not the same as the previous one used.
         /// </summary>
         public void Initialize()
         {
@@ -77,6 +77,38 @@ namespace ClientLauncher.Core
 
             if (!Directory.Exists(UniqueFolderName))
                 Directory.CreateDirectory(UniqueFolderName);
+
+            // Check the watermark file
+            string watermarkFile = Path.Combine(GameDataFolder, MPVirtualFolderWatermarkFileName);
+            bool bRequiresFolderVirtualWipe = false;
+            if (File.Exists(watermarkFile))
+            {
+                try
+                {
+                    var previousServerVirtualName = File.ReadAllText(watermarkFile);
+                    if (previousServerVirtualName != UniqueFolderName)
+                        bRequiresFolderVirtualWipe = true;
+
+                } catch
+                {
+                    bRequiresFolderVirtualWipe = true;
+                }
+            }
+            else
+            {
+                // No file exists, so purge it all
+                bRequiresFolderVirtualWipe = true;
+            }
+
+            if (bRequiresFolderVirtualWipe)
+            {
+                try
+                {
+                    UnmapAllVirtualFiles();
+                    File.WriteAllText(watermarkFile, UniqueFolderName);
+                }
+                catch { }
+            }
         }
 
         internal class Mapping
