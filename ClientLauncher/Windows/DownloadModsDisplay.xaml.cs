@@ -265,10 +265,48 @@ namespace ClientLauncher.Windows
                                                 using (var fs = File.Create(activeFilePath))
                                                 {
                                                     resp.GetResponseStream().CopyTo(fs);
+                                                }
 
-                                                    Trace.WriteLine($"{serverMod.ModInfo.FilePath} downloaded");
-                                                    serverMod.IsDownloading = false;
-                                                    serverMod.IsDownloaded = true;
+                                                Trace.WriteLine($"{serverMod.ModInfo.FilePath} downloaded, validating contents...");
+                                                serverMod.IsDownloading = false;
+                                                serverMod.IsDownloaded = true;
+
+                                                // Now the file has downloaded, compare the checksum to the one reported from the server details to be sure
+                                                // this file is the one we were expecting.
+                                                if (serverMod.ModInfo.Digest != "*")
+                                                {
+                                                    string fileDigest = null;
+                                                    using (var file = File.OpenRead(activeFilePath))
+                                                    {
+                                                        using (var digester = MD5.Create())
+                                                        {
+                                                            byte[] hashBytes = digester.ComputeHash(file);
+                                                            StringBuilder sb = new StringBuilder();
+
+                                                            for (int i = 0; i < hashBytes.Length; i++)
+                                                            {
+                                                                sb.Append(hashBytes[i].ToString("x2"));
+                                                            }
+
+                                                            fileDigest = sb.ToString();
+                                                        }
+                                                    }
+
+                                                    if (fileDigest != serverMod.ModInfo.Digest)
+                                                    {
+                                                        // Remove the file, and mark it as invalid.
+                                                        try
+                                                        {
+                                                            File.Delete(activeFilePath);
+                                                        }
+                                                        catch { }
+
+                                                        MessageBox.Show($"Failed to download {serverMod.ModInfo.Name}. The server sent us a file we were not expecting. ", "Download Error",
+                                                            MessageBoxButton.OK, MessageBoxImage.Error);
+
+                                                        serverMod.IsDownloading = false;
+                                                        serverMod.IsDownloaded = false;
+                                                    }
                                                 }
                                             }
                                         }
