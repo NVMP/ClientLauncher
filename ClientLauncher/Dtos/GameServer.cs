@@ -16,14 +16,14 @@ namespace ClientLauncher.Dtos
         [DataMember(Name = "name")]
         public string Name { get; set; }
 
-        [DataMember(Name = "file_path")]
-        public string FilePath { get; set; }
-
         [DataMember(Name = "digest")]
         public string Digest { get; set; }
 
         [DataMember(Name = "downloadable")]
         public bool Downloadable { get; set; }
+
+        // Used internally
+        public string FilePath { get; set; }
     }
 
     [DataContract]
