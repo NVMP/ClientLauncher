@@ -199,7 +199,6 @@ namespace ClientLauncher.Core
                 mappingCmd.StartInfo.FileName = "cmd.exe";
                 mappingCmd.StartInfo.UseShellExecute = true;
                 mappingCmd.StartInfo.CreateNoWindow = true;
-                mappingCmd.StartInfo.Verb = "runas";
                 mappingCmd.StartInfo.Arguments = $"/c " + String.Join(" && ", mkLinkCommands);
                 mappingCmd.StartInfo.WorkingDirectory = Directory.GetCurrentDirectory();
 
