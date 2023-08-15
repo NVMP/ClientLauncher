@@ -1077,10 +1077,18 @@ namespace ClientLauncher
 
             var installation = GetAndVerifyInstallation();
 
+            var mountableModTypes = new string[]
+            {
+                ".esm",
+                ".esp"
+            };
+
             string modsList = "*";
             if (server.Mods != null)
             {
-                modsList = String.Join(",", server.Mods.Select(mod => mod.Name));
+                modsList = String.Join(",", server.Mods
+                    .Where(mod => mountableModTypes.Contains( Path.GetExtension(mod.FilePath) ))
+                    .Select(mod => mod.Name));
             }
 
             // If the mods list ins't correctly populated, try to PROBE the server to see if we can grab this information
@@ -1148,7 +1156,9 @@ namespace ClientLauncher
                         // as this allows for internal reporting to always be a reliable fallback.
                         if (result.Result.Mods.Count != 0)
                         {
-                            modsList = String.Join(",", result.Result.Mods);
+                            modsList = String.Join(",", result.Result.Mods
+                                .Where(mod => mountableModTypes.Contains(Path.GetExtension(mod)))
+                                .Select(mod => mod));
                         }
                     }
                 }
