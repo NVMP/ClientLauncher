@@ -255,8 +255,6 @@ namespace ClientLauncher.Core
             // Remove all mappings firstly.
             UnmapAllVirtualFiles();
 
-            System.Threading.Thread.Sleep(9000);
-
             // Validate that all the files passed in exist in the virtual data folder, or if they are in the data
             // folder then there is no need to map them.
             var toMapFiles = new List<string>();
