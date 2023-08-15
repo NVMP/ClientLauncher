@@ -14,6 +14,64 @@ namespace ClientLauncher.Core
         private static readonly string MPVirtualFolderName = $"nvmp\\vdata";
         private static readonly string MPVirtualFolderWatermarkFileName = "nvmp_mapped.txt";
 
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
+        private struct FILETIME
+        {
+            public uint DateTimeLow;
+            public uint DateTimeHigh;
+        }
+
+        [StructLayout(LayoutKind.Sequential, Pack = 1)]
+        private struct BY_HANDLE_FILE_INFORMATION
+        {
+            public uint FileAttributes;
+            public FILETIME CreationTime;
+            public FILETIME LastAccessTime;
+            public FILETIME LastWriteTime;
+            public uint VolumeSerialNumber;
+            public uint FileSizeHigh;
+            public uint FileSizeLow;
+            public uint NumberOfLinks;
+            public uint FileIndexHigh;
+            public uint FileIndexLow;
+        }
+
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        private static extern IntPtr CreateFile(string lpFileName, uint dwDesiredAccess,
+                                               uint dwShareMode, IntPtr lpSecurityAttributes,
+                                               uint dwCreationDisposition, uint dwFlagsAndAttributes,
+                                               IntPtr hTemplateFile);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool GetFileInformationByHandle(IntPtr hFile, out BY_HANDLE_FILE_INFORMATION lpFileInformation);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool CloseHandle(IntPtr hObject);
+
+        private uint GetNumFileLinkCount(string filename)
+        {
+            // I hate this...
+            IntPtr hFileHandle = CreateFile(filename, (uint)FileAccess.Read, (uint)FileShare.Read, IntPtr.Zero, (uint)FileMode.Open, (uint)FileAttributes.Archive, IntPtr.Zero);
+            if ((int)hFileHandle == -1)
+            {
+                return 0;
+            }
+
+            uint iResult = 0;
+
+            if (GetFileInformationByHandle(hFileHandle, out BY_HANDLE_FILE_INFORMATION info))
+            {
+                iResult = info.NumberOfLinks;
+            }
+
+            CloseHandle(hFileHandle);
+
+            return iResult;
+        }
+
         /// <summary>
         /// The server folder name to use for the virtual folder helper. This is where all our custom data content is stored.
         /// </summary>
@@ -48,17 +106,17 @@ namespace ClientLauncher.Core
 
         public bool DoesFileExist(string filename, out string path)
         {
-            string dataPath = Path.Combine(GameDataFolder, filename);
-            if (File.Exists(dataPath))
-            {
-                path = dataPath;
-                return true;
-            }
-
             string virtualPath = Path.Combine(UniqueFolderName, filename);
             if (File.Exists(virtualPath))
             {
                 path = virtualPath;
+                return true;
+            }
+
+            string dataPath = Path.Combine(GameDataFolder, filename);
+            if (File.Exists(dataPath))
+            {
+                path = dataPath;
                 return true;
             }
 
@@ -134,7 +192,7 @@ namespace ClientLauncher.Core
                     }
                     catch { }
 
-                    mkLinkCommands.Add($"mklink \"{file.NewDest}\" \"{file.Original}\"");
+                    mkLinkCommands.Add($"mklink /h \"{file.NewDest}\" \"{file.Original}\"");
                 }
 
                 var mappingCmd = new Process();
@@ -171,7 +229,9 @@ namespace ClientLauncher.Core
                 var fileInfo = new FileInfo(file);
                 if (fileInfo.Exists)
                 {
-                    if (fileInfo.Attributes.HasFlag(FileAttributes.ReparsePoint))
+                    // Remove any file that is a hard link, we don't support these anymore but worth purging
+                    // Remove any file that has more than one hard link, meaning it is likely mapped from another location
+                    if (fileInfo.Attributes.HasFlag(FileAttributes.ReparsePoint) || GetNumFileLinkCount(file) > 1)
                     {
                         // Unlink
                         try
@@ -180,6 +240,7 @@ namespace ClientLauncher.Core
                         }
                         catch { }
                     }
+
                 }
             }
         }
@@ -193,6 +254,8 @@ namespace ClientLauncher.Core
         {
             // Remove all mappings firstly.
             UnmapAllVirtualFiles();
+
+            System.Threading.Thread.Sleep(9000);
 
             // Validate that all the files passed in exist in the virtual data folder, or if they are in the data
             // folder then there is no need to map them.

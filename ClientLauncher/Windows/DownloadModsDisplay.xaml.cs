@@ -271,6 +271,8 @@ namespace ClientLauncher.Windows
                                                 serverMod.IsDownloading = false;
                                                 serverMod.IsDownloaded = true;
 
+                                                requiresMapping = true;
+
                                                 // Now the file has downloaded, compare the checksum to the one reported from the server details to be sure
                                                 // this file is the one we were expecting.
                                                 if (serverMod.ModInfo.Digest != "*")
