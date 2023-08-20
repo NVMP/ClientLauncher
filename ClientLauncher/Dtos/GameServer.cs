@@ -67,6 +67,10 @@ namespace ClientLauncher.Dtos
         [DataMember(Name = "mods")]
         public List<DtoServerModInfo> Mods { get; set; }
 
+        // A list of approved external mods that are resolved when joining
+        [DataMember(Name = "external_mods")]
+        public List<string> RequiredExternalMods { get; set; }
+
         //
         // Custom Displays
         //
