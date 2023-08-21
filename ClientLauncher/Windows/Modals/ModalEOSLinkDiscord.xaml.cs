@@ -68,19 +68,23 @@ namespace ClientLauncher.Windows.Modals
             LinkExternally.IsEnabled = false;
             LinkExternally.Cursor = Cursors.Wait;
 
-            EOSManager.ConnectExternalLoginType(EOSLoginType.Discord, (IEOSLinkageResult result) =>
+            try
             {
-                if (result.Success)
+                EOSManager.ConnectExternalLoginType(EOSLoginType.Discord, (IEOSLinkageResult result) =>
                 {
-                    Close();
-                }
-                else
-                {
-                    LinkExternally.Cursor = Cursors.Hand;
-                    LinkExternally.IsEnabled = true;
-                    TryToPresentFailureReason(result.FailureReason);
-                }
-            });
+                    if (result.Success)
+                    {
+                        Close();
+                    }
+                    else
+                    {
+                        LinkExternally.Cursor = Cursors.Hand;
+                        LinkExternally.IsEnabled = true;
+                        TryToPresentFailureReason(result.FailureReason);
+                    }
+                });
+            }
+            catch { }
         }
     }
 }

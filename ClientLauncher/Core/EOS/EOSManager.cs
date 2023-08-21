@@ -250,7 +250,11 @@ namespace ClientLauncher.Core.EOS
 
         public EOSManager()
         {
-            DiscordSDKInstance = new Discord.Discord(536724603054325760, (ulong)Discord.CreateFlags.NoRequireDiscord);
+            try
+            {
+                DiscordSDKInstance = new Discord.Discord(536724603054325760, (ulong)Discord.CreateFlags.NoRequireDiscord);
+            }
+            catch { }
         }
 
         public void Dispose()
@@ -258,7 +262,7 @@ namespace ClientLauncher.Core.EOS
             PlatformInterface.Shutdown();
             PlatformInterfaceInstance = null;
 
-            DiscordSDKInstance.Dispose();
+            DiscordSDKInstance?.Dispose();
             DiscordSDKInstance = null;
         }
 
@@ -848,6 +852,9 @@ namespace ClientLauncher.Core.EOS
         {
             if (User == null || User.AccountId == null)
                 throw new Exception("Can only call this when logged in.");
+
+            if (DiscordSDKInstance == null)
+                throw new Exception("Discord is not running");
 
             DiscordSDKInstance.GetApplicationManager().GetOAuth2Token((Discord.Result result, ref Discord.OAuth2Token token) =>
             {
