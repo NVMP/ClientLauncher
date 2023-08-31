@@ -24,6 +24,9 @@ namespace ClientLauncher
         public const string FALLOUTNV_4GB_3 = "600CD576CDE7746FB2CD152FDD24DB97453ED135";
         public const string FALLOUTNV_4GB_4 = "34B65096CAEF9374DD6AA39AF855E43308B417F2";
 
+        // Waiting on community hashes
+        public const string FALLOUTNV_EPICGAMES_WOMP_WOMP = "NOT_FILLED_IN";
+
         protected class HashDescription
         {
             public string Hash { get; set; }
@@ -49,11 +52,8 @@ namespace ClientLauncher
                 new HashDescription { Hash = FALLOUTNV_4GB_3, Name = "FalloutNV 4GB" },
                 new HashDescription { Hash = FALLOUTNV_4GB_4, Name = "FalloutNV 4GB" },
             } }
-            //{ "steam_api.dll", new List<HashDescription> {
-            //    new HashDescription { Hash = "20867924FEAB62E443E90F841822A9B43C8C8B12", Name = "steam_api.dll" }
-            //} },
-//            { "awesomium.dll", new List<string> { "91BBF94EB4493D7DA15F237143C720CD" } },
         };
+
 
         private static IDictionary<string, int> GameIDLookup = new Dictionary<string, int>
         {
@@ -110,28 +110,72 @@ namespace ClientLauncher
             
             return GameID;
         }
-        
-        private static string ValidateFile(string Filename, string DirectoryPath)
+
+        public enum VersionFailureReason
+        {
+            /// <summary>
+            /// Should succeed for vanilla installations, and 4GB patcher installations.
+            /// </summary>
+            Success,
+
+            /// <summary>
+            /// A core component is missing entirely.
+            /// </summary>
+            MissingCoreComponent,
+
+            /// <summary>
+            /// Invalid core component. Could be a pirated copy.
+            /// </summary>
+            InvalidCoreComponent,
+
+            /// <summary>
+            /// Invalid core component, due to Epic Games. Not supported at all sadly, it's a rebuild of the executable so all the offset work is invalid.
+            /// </summary>
+            InvalidCoreComponent_EpicGames,
+        }
+
+        private enum ValidateFileFailureReason
+        {
+            Success,
+
+            /// <summary>
+            /// Could not find the file on the current disk.
+            /// </summary>
+            FileMissingOnDisk,
+
+            /// <summary>
+            /// File is not registered in the database.
+            /// </summary>
+            FileNotInDatabase,
+
+            /// <summary>
+            /// File could not be opened for reading.
+            /// </summary>
+            FileIOError,
+
+            /// <summary>
+            /// File was read, and the filename is in the database, but it does not match any valid hash.
+            /// </summary>
+            FileInvalidHash,
+        }
+
+        private static ValidateFileFailureReason ValidateFile(string Filename, string DirectoryPath, ref string digest)
         {
             string FullPath = DirectoryPath + "\\" + Filename;
 
             if (!File.Exists(FullPath))
             {
                 Trace.WriteLine("ValidateFile: file doesn't exist (" + FullPath + ")");
-                return "missing " + Filename;
+                return ValidateFileFailureReason.FileMissingOnDisk;
             }
 
             string FileHash = null;
-            List<HashDescription> RealHashes = null;
+            List<HashDescription> RealHashes;
 
-            try
-            {
-                RealHashes = HashDatabase[ Filename ];
-            }
-            catch (Exception)
+            if (!HashDatabase.TryGetValue(Filename, out RealHashes))
             {
                 Trace.WriteLine("ValidateFile: no file entry in database for (" + FullPath + ")");
-                return "dberror for " + Filename;
+                return ValidateFileFailureReason.FileNotInDatabase;
             }
 
             // Start calculating file hash.
@@ -152,13 +196,14 @@ namespace ClientLauncher
                         }
 
                         FileHash = formatted.ToString();
+                        digest = FileHash;
                     }
                 }
 
             } catch (Exception e)
             {
                 Trace.WriteLine("ValidateFile: file open error, " + e.ToString());
-                return "fileopen error: " + Filename;
+                return ValidateFileFailureReason.FileIOError;
             }
 
             bool ValidHash = false;
@@ -174,27 +219,42 @@ namespace ClientLauncher
             if (!ValidHash)
             {
                 Trace.WriteLine("ValidateFile: hash not met for " + FullPath + ", got (" + FileHash + ")");
-                return "invalid file " + Filename;
+                return ValidateFileFailureReason.FileInvalidHash;
             }
 
-            return null;
+            return ValidateFileFailureReason.Success;
         }
 
-        public static string IsGameCorrectVersion(string DirectoryPath)
+        public static VersionFailureReason IsGameCorrectVersion(string DirectoryPath)
         {
-            string ErrMessage = null;
+            string FileHash = null;
 
             foreach (KeyValuePair<string, List<HashDescription>> HashPair in HashDatabase)
             {
-                ErrMessage = ValidateFile(HashPair.Key, DirectoryPath);
-                if (ErrMessage != null)
+                var validationReason = ValidateFile(HashPair.Key, DirectoryPath, ref FileHash);
+                if (validationReason != ValidateFileFailureReason.Success)
                 {
-                    return ErrMessage;
+                    switch (validationReason)
+                    {
+                        case ValidateFileFailureReason.FileIOError:
+                        case ValidateFileFailureReason.FileNotInDatabase:
+                        case ValidateFileFailureReason.FileMissingOnDisk:
+                            return VersionFailureReason.MissingCoreComponent;
+                        case ValidateFileFailureReason.FileInvalidHash:
+                        {
+                            // If this is an Epic Games copy, then return a different modifier
+                            if (FileHash != null && FileHash == FALLOUTNV_EPICGAMES_WOMP_WOMP)
+                            {
+                                return VersionFailureReason.InvalidCoreComponent_EpicGames;
+                            }
+                            return VersionFailureReason.InvalidCoreComponent;
+                        }
+                    }
                 }
             }
-            
 
-            return ErrMessage;
+
+            return VersionFailureReason.Success;
         }
     }
 }

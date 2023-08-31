@@ -1020,7 +1020,7 @@ namespace ClientLauncher
 
         protected StartupInfo GetAndVerifyInstallation()
         {
-            StartupInfo result = new StartupInfo();
+            var result = new StartupInfo();
 
             if (result.GameDirectory == null)
             {
@@ -1053,10 +1053,18 @@ namespace ClientLauncher
             // Validate the Fallout: New Vegas game files are the right
             // checksums (to prevent "no gore" edition being ran).
 
-            string ValidityError = FalloutChecksum.IsGameCorrectVersion(result.GameDirectory);
-            if (ValidityError != null)
+            var validity = FalloutChecksum.IsGameCorrectVersion(result.GameDirectory);
+            if (validity != FalloutChecksum.VersionFailureReason.Success)
             {
-                throw new Exception("FO:NV copy invalid (" + ValidityError + ")");
+                switch (validity)
+                {
+                    case FalloutChecksum.VersionFailureReason.MissingCoreComponent:
+                        throw new Exception("FalloutNV.exe not found");
+                    case FalloutChecksum.VersionFailureReason.InvalidCoreComponent:
+                        throw new Exception("FalloutNV.exe is invalid - incorrect revision");
+                    case FalloutChecksum.VersionFailureReason.InvalidCoreComponent_EpicGames:
+                        throw new Exception("FalloutNV.exe is invalid - Epic Games not supported");
+                }
             }
 
             // Validate the NVMP executable exists.
