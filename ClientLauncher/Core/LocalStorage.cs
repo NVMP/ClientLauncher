@@ -359,7 +359,7 @@ namespace ClientLauncher.Core
             }
         }
 
-        public void TryLoadSavedData()
+        public bool TryLoadSavedData()
         {
             try
             {
@@ -435,14 +435,19 @@ namespace ClientLauncher.Core
                     {
                         Loaded.Invoke(null, null);
                     }
+
+                    return true;
                 }
                 else
                 {
+                    // Create some default data and then save it
                     InternalData = new DataStore();
                     Save();
                 }
 
             } catch (Exception) { }
+
+            return false;
         }
 
         public void Save()

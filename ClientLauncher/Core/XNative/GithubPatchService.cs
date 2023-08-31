@@ -213,7 +213,33 @@ namespace ClientLauncher.Core.XNative
             }
         }
 
-        internal void PostPatchScripts()
+        public void TryToInstallMSVC()
+        {
+            if (!Directory.Exists(Root + "\\nvmp\\redist"))
+            {
+                Trace.WriteLine("Redist dir not found");
+                return;
+            }
+
+            string InstallerExe = Root + "\\nvmp\\redist\\vc_redist.x86.exe";
+            if (!File.Exists(InstallerExe))
+            {
+                Trace.WriteLine("Redist file not found");
+                return;
+            }
+
+            Process installer = new Process();
+            installer.StartInfo.FileName = InstallerExe;
+            installer.StartInfo.UseShellExecute = true;
+            installer.StartInfo.WorkingDirectory = Root + "\\nvmp\\redist";
+            installer.StartInfo.Verb = "runas";
+            installer.StartInfo.Arguments = "/q"; // Silent installation
+            installer.EnableRaisingEvents = true;
+            installer.Start();
+            installer.WaitForExit(); // Make sure this process is completed before starting NV:MP
+        }
+
+        private void PostPatchScripts()
         {
             // Ensure there is a start-menu entry
             string ClientPath = Root + "\\nvmp_launcher.exe";
@@ -236,9 +262,16 @@ namespace ClientLauncher.Core.XNative
             Shortcut.TargetPath = ClientPath;
             Shortcut.WorkingDirectory = Root;
             Shortcut.Save();
+
+            // Ensure redists are installed - silently fail if this doesnt work
+            try
+            {
+                TryToInstallMSVC();
+            } catch { }
         }
 
-        public void Patch(bool ForceOver = false)
+        // Returns if the patching service expects the application to continue
+        public bool Patch(bool ForceOver = false)
         {
             OpenModal();
 
@@ -257,7 +290,7 @@ namespace ClientLauncher.Core.XNative
                     {
                         CloseModalSafe();
                         MessageBox.Show("Patching Services are currently unavailable");
-                        return;
+                        return true;
                     }
 
                     Directory.CreateDirectory($"{Root}\\.nvmp_patch");
@@ -286,7 +319,7 @@ namespace ClientLauncher.Core.XNative
                     {
                         CloseModalSafe();
                         MessageBox.Show("Patch failure\n" + e.Message);
-                        return;
+                        return true;
                     }
 
                     Directory.Delete($"{Root}\\.nvmp_patch", true);
@@ -304,11 +337,12 @@ namespace ClientLauncher.Core.XNative
                     SetModalStatus(Windows.PatchDisplay.EPatchStatus.kPatchStatus_Restarting);
                     Thread.Sleep(2000);
                     Restart();
-                    return;
+                    return true;
                 }
             }
 
             CloseModalSafe();
+            return false;
         }
     }
 #endif

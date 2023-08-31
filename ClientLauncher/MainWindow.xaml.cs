@@ -304,7 +304,7 @@ namespace ClientLauncher
 
                         Func<string> randomNameGen = () =>
                         {
-                            var items = new string[] { "A New Vegas Multiplayer server", "My Server", "Cool Server Dot Com", "Battle of the Brutes", "BIG WEINERS ONLY", "DOG",
+                            var items = new string[] { "A New Vegas Multiplayer server", "My Server", "Cool Server Dot Com", "Battle of the Brutes", "DOG",
                         "Point Lookout Deathmatch | 64 Tick" };
                             return items[rng.Next(items.Length - 1)];
                         };
@@ -381,7 +381,6 @@ namespace ClientLauncher
                     }
                 }).Start();
             }
-
 
             Thread.Sleep(500);
 
@@ -601,32 +600,6 @@ namespace ClientLauncher
 
             BackgroundAuthor.Content = $"Background by {bg.Author}";
             BackgroundPanel.ImageSource = new BitmapImage(uri);
-        }
-
-        private void TryToInstallMSVC(string GameDir)
-        {
-            if (!Directory.Exists(GameDir + "\\nvmp\\redist"))
-            {
-                Trace.WriteLine("Redist dir not found");
-                return;
-            }
-
-            string InstallerExe = GameDir + "\\nvmp\\redist\\vc_redist.x86.exe";
-            if (!File.Exists(InstallerExe))
-            {
-                Trace.WriteLine("Redist file not found");
-                return;
-            }
-
-            Process installer = new Process();
-            installer.StartInfo.FileName         = InstallerExe;
-            installer.StartInfo.UseShellExecute  = true;
-            installer.StartInfo.WorkingDirectory = GameDir + "\\nvmp\\redist";
-            installer.StartInfo.Verb             = "runas";
-            installer.StartInfo.Arguments        = "/q"; // Silent installation
-            installer.EnableRaisingEvents        = true;
-            installer.Start();
-            installer.WaitForExit(); // Make sure this process is completed before starting NV:MP
         }
 
         private void SortServerList()
@@ -875,21 +848,6 @@ namespace ClientLauncher
         /// <param name="e"></param>
         public void Repair_Click(object sender, RoutedEventArgs e)
         {
-            string GameDirectory;
-
-            try
-            {
-                GameDirectory = FalloutFinder.GameDir(StorageService);
-
-                if (GameDirectory == null)
-                    throw new Exception("FO:NV or Steam is not installed.");
-
-                TryToInstallMSVC(GameDirectory);
-            }
-            catch (Exception)
-            {
-            }
-
             // Do the patching.
             PatchService.Patch( true );
         }
