@@ -1075,7 +1075,7 @@ namespace ClientLauncher
             return result;
         }
 
-        public void JoinServer(DtoGameServer server)
+        public bool JoinServer(DtoGameServer server)
         {
             if (JoiningWindowInstance != null)
             {
@@ -1133,7 +1133,7 @@ namespace ClientLauncher
                             }
 
                             MessageBox.Show($"Could not connect to {server.IP}:{server.Port} [{msg}]", "New Vegas: Multiplayer", MessageBoxButton.OK, MessageBoxImage.Exclamation);
-                            return;
+                            return false;
                         }
 
                         foreach (var accountType in result.Result.AccountTypesRequired)
@@ -1144,7 +1144,7 @@ namespace ClientLauncher
                                     break;
                                 case NetProbe.Types.OSExternalAccountType.Discord:
                                     if (EOSManager.User == null)
-                                        return;
+                                        return false;
 
                                     if (!EOSManager.User.LinkedAuths.Contains(EOSLoginType.Discord))
                                     {
@@ -1155,7 +1155,7 @@ namespace ClientLauncher
                                         if (!EOSManager.User.LinkedAuths.Contains(EOSLoginType.Discord))
                                         {
                                             ShowError("Discord Authorization failed");
-                                            return;
+                                            return false;
                                         }
                                     }
                                     break;
@@ -1176,7 +1176,7 @@ namespace ClientLauncher
                 catch (Exception e)
                 {
                     ShowError(e.Message);
-                    return;
+                    return false;
                 }
             }
 
@@ -1201,7 +1201,7 @@ namespace ClientLauncher
                     // Rome has fallen! Re-authenticate.
                     string falloutDir = FalloutFinder.GameDir(StorageService);
                     VerifyOrRunOtherGameLauncher(falloutDir, copyIfMissing: true);
-                    return;
+                    return false;
                 }
             }
 
@@ -1244,6 +1244,8 @@ namespace ClientLauncher
 #endif
                 RepairSteam_Control.IsEnabled = false;
             });
+
+            return true;
         }
 
         protected void SortModFiles(string modsList, string gameDirectory)
@@ -1362,8 +1364,10 @@ namespace ClientLauncher
                     }
                 }
 
-                JoinServer(server);
-                ShowError(null);
+                if (JoinServer(server))
+                {
+                    ShowError(null);
+                }
             }
             catch (Exception exc)
             {
