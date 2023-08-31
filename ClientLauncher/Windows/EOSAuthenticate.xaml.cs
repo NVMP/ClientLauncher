@@ -53,11 +53,6 @@ namespace ClientLauncher.Windows
             ParentWindow = parentWindow;
             InitializeComponent();
 
-            Activate();
-            Topmost = true;  // important
-            Topmost = false; // important
-            Focus();         // important
-
             ParentWindow.EOSManager.TryAutoLogin((result) =>
             {
                 Activate();

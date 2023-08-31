@@ -217,7 +217,7 @@ namespace ClientLauncher.Core.XNative
         {
             // Ensure there is a start-menu entry
             string ClientPath = Root + "\\nvmp_launcher.exe";
-            string CommonStartMenuPath = Environment.GetFolderPath(Environment.SpecialFolder.CommonStartMenu);
+            string CommonStartMenuPath = Environment.GetFolderPath(Environment.SpecialFolder.StartMenu);
             string ApplicationStartMenuPath = Path.Combine(CommonStartMenuPath, "Programs", "NVMP");
 
             if (!Directory.Exists(ApplicationStartMenuPath))
@@ -227,12 +227,15 @@ namespace ClientLauncher.Core.XNative
 
             if (!File.Exists(ShortcutLocation))
             {
-                IWshRuntimeLibrary.WshShell Shell = new IWshRuntimeLibrary.WshShell();
-                IWshRuntimeLibrary.IWshShortcut Shortcut = (IWshRuntimeLibrary.IWshShortcut)Shell.CreateShortcut(ShortcutLocation);
-                Shortcut.Description = "NV:MP Game Client";
-                Shortcut.TargetPath = ClientPath;
-                Shortcut.Save();
+                File.Delete(ShortcutLocation);
             }
+
+            IWshRuntimeLibrary.WshShell Shell = new IWshRuntimeLibrary.WshShell();
+            IWshRuntimeLibrary.IWshShortcut Shortcut = (IWshRuntimeLibrary.IWshShortcut)Shell.CreateShortcut(ShortcutLocation);
+            Shortcut.Description = "NV:MP Game Client";
+            Shortcut.TargetPath = ClientPath;
+            Shortcut.WorkingDirectory = Root;
+            Shortcut.Save();
         }
 
         public void Patch(bool ForceOver = false)
@@ -293,7 +296,10 @@ namespace ClientLauncher.Core.XNative
                     {
                         PostPatchScripts();
                     }
-                    catch { } 
+                    catch (Exception e)
+                    {
+                        MessageBox.Show($"During installation, a start menu entry failed to be created.\n\n{e}", "New Vegas: Multiplayer", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    }
 
                     SetModalStatus(Windows.PatchDisplay.EPatchStatus.kPatchStatus_Restarting);
                     Thread.Sleep(2000);

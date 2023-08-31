@@ -54,11 +54,8 @@ namespace ClientLauncher.Windows.Modals
             InitializeComponent();
             EOSManager = eosManager;
 
-            Activate();
             Topmost = true;  // important
-            Topmost = false; // important
-            Focus();         // important
-
+            Activate();
         }
 
         private void LinkExternally_Click(object sender, RoutedEventArgs e)

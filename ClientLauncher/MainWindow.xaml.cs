@@ -131,11 +131,6 @@ namespace ClientLauncher
             AboutWindowInstance = null;
             BlurLevel = 0;
 
-#if EOS_SUPPORTED
-            EOSManager = new EOSManager();
-            EOSManager.UserUpdated += EOSManager_UserUpdated;
-#endif
-
             string exeName = "nvmp_launcher";
             var nvmpProcesses = Process.GetProcessesByName(exeName);
             if (nvmpProcesses.Length > 1)
@@ -150,24 +145,59 @@ namespace ClientLauncher
                 }
             }
 
+            // Load the storage service
+            StorageService = new LocalStorage();
+            StorageService.TryLoadSavedData();
+
+            // Try to find an installation to use
+            string falloutDir = FalloutFinder.GameDir(StorageService);
+            if (falloutDir == null)
+            {
+                // Could not find the installation folder, so ask the user where it is
+                falloutDir = FalloutFinder.PromptToFindDirectory(Directory.GetCurrentDirectory());
+
+                if (falloutDir == null)
+                {
+                    Close();
+                    return;
+                }
+
+                // Assign the fallout dir to the local storage config
+                StorageService.GamePathOverride = falloutDir;
+            }
+
+            // Now, check this launcher is running in the correct context. If we are running the launcher, but its current working directory is
+            // not the one seen above, then run the other launcher.
+            if (Directory.GetCurrentDirectory() != falloutDir)
+            {
+                try
+                {
+                    // We may need to swap over to that installation's launcher if it exists, but if it doesn't, then copy our launcher
+                    // into it and then it should automatically update
+                    VerifyOrRunOtherGameLauncher(StorageService.GamePathOverride, copyIfMissing: true);
+                }
+                catch (Exception ex)
+                {
+                    ShowError(ex.Message);
+                    StorageService.GamePathOverride = null;
+                }
+
+                Close();
+                return;
+            }
+
+            // External services pulled in now
+#if EOS_SUPPORTED
+            EOSManager = new EOSManager();
+            EOSManager.UserUpdated += EOSManager_UserUpdated;
+#endif
+
             ENet.Managed.ManagedENet.Startup();
 
             // Needed for communication to HTTPS supporting websites. This could either be the version checker, or the patch service.
             // Regardless this needs to stay enabled even if we do a Nexus submission
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
             ServicePointManager.Expect100Continue = true;
-
-            StorageService = new LocalStorage();
-            StorageService.TryLoadSavedData();
-
-            string falloutDir = FalloutFinder.GameDir(StorageService);
-            if (falloutDir == null)
-            {
-                MessageBox.Show("No fallout installation was found on this system. NV:MP can't start up without a valid game directory",
-                    "New Vegas: Multiplayer", MessageBoxButton.OK, MessageBoxImage.Warning);
-                Close();
-                return;
-            }
 
             // Start the viewer up.
             InitializeComponent();
@@ -389,6 +419,7 @@ namespace ClientLauncher
                 PushWindowBlur();
 
                 var eosAuthenticationWindow = new Windows.EOSAuthenticate(this);
+                eosAuthenticationWindow.Topmost = true;
                 eosAuthenticationWindow.ShowDialog();
 
                 if (!eosAuthenticationWindow.Succeeded)
@@ -432,9 +463,6 @@ namespace ClientLauncher
             }
 
             Activate();
-            Topmost = true;  // important
-            Topmost = false; // important
-            Focus();         // important
         }
 
 #if EOS_SUPPORTED
@@ -959,42 +987,25 @@ namespace ClientLauncher
 
         public void OverrideGameDir_Click(object sender, RoutedEventArgs e)
         {
-            string currentPath = null;
-
             ShowError(null);
 
-            try
+            string desiredPath = FalloutFinder.PromptToFindDirectory(FalloutFinder.GameDir(StorageService));
+            if (desiredPath != null)
             {
-                currentPath = GetAndVerifyInstallation().GameDirectory;
-            } catch (Exception)
-            {
-            }
+                StorageService.GamePathOverride = desiredPath;
 
-            using (var dialog = new System.Windows.Forms.FolderBrowserDialog())
-            {
-                if (currentPath != null)
+                try
                 {
-                    dialog.SelectedPath = currentPath;
+                    GetAndVerifyInstallation();
+
+                    // We may need to swap over to that installation's launcher if it exists, but if it doesn't, then copy our launcher
+                    // into it and then it should automatically update
+                    VerifyOrRunOtherGameLauncher(StorageService.GamePathOverride, copyIfMissing: true);
                 }
-
-                dialog.ShowDialog();
-                if (dialog.SelectedPath != null)
+                catch (Exception ex)
                 {
-                    StorageService.GamePathOverride = dialog.SelectedPath;
-
-                    try
-                    {
-                        GetAndVerifyInstallation();
-
-                        // We may need to swap over to that installation's launcher if it exists, but if it doesn't, then copy our launcher
-                        // into it and then it should automatically update
-                        VerifyOrRunOtherGameLauncher(StorageService.GamePathOverride, copyIfMissing: true);
-                    }
-                    catch (Exception ex)
-                    {
-                        ShowError(ex.Message);
-                        StorageService.GamePathOverride = null;
-                    }
+                    ShowError(ex.Message);
+                    StorageService.GamePathOverride = null;
                 }
             }
         }
@@ -1454,6 +1465,7 @@ namespace ClientLauncher
                 }
 
                 Show();
+                Activate();
             });
         }
 

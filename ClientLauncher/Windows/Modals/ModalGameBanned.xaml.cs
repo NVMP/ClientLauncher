@@ -37,10 +37,8 @@ namespace ClientLauncher.Windows.Modals
         {
             InitializeComponent();
 
-            Activate();
             Topmost = true;  // important
-            Topmost = false; // important
-            Focus();         // important
+            Activate();
 
 #if EOS_SUPPORTED
             if (!sanction.ExpiresAt.HasValue)

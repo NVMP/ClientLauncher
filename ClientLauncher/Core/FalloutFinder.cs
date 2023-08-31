@@ -5,6 +5,7 @@ using System.Text.RegularExpressions;
 using System.IO;
 using ClientLauncher.Core;
 using System;
+using System.Windows.Forms;
 
 namespace ClientLauncher
 {
@@ -22,6 +23,17 @@ namespace ClientLauncher
             new string[] { "Software\\GOG.com\\Games\\1454587428", "path" },
         };
 
+        public static bool IsFolderFalloutNVInstallation(string folder)
+        {
+            if (!Directory.Exists(folder))
+                return false;
+
+            if (File.Exists(Path.Combine(folder, "FalloutNV.exe")))
+                return true;
+
+            return false;
+        }
+
         private static string FindDiscoverableGame()
         {
             foreach (var key in RegistryKeys)
@@ -35,7 +47,7 @@ namespace ClientLauncher
                         {
                             if (value.Length != 0)
                             {
-                                if (File.Exists($"{value}\\FalloutNV.exe"))
+                                if (IsFolderFalloutNVInstallation(value))
                                     return value;
                             }
                         }
@@ -67,8 +79,54 @@ namespace ClientLauncher
                 return discoveredGame;
             }
 
-            // The ultimate fallback, use the current directory
-            return Directory.GetCurrentDirectory();
+            // The ultimate fallback, use the current directory if it's a valid installation
+            string current = Directory.GetCurrentDirectory();
+            if (IsFolderFalloutNVInstallation(current))
+            {
+                return current;
+            }
+
+            return null;
+        }
+
+        //-------------------------------------------------
+        // Prompts the user to locate a game directory.
+        // Returns NULL if they back out.
+        //-------------------------------------------------
+        public static string PromptToFindDirectory(string startAtDirectory = null)
+        {
+            while (true)
+            {
+                using (var dialog = new FolderBrowserDialog())
+                {
+                    dialog.Description = "Please locate your Fallout: New Vegas installation to mount NV:MP into";
+                    
+                    if (startAtDirectory != null)
+                    {
+                        dialog.SelectedPath = startAtDirectory;
+                    }
+
+                    if (dialog.ShowDialog() != DialogResult.OK)
+                    {
+                        // User cancelled the prompt, so just backout and return null.
+                        return null;
+                    }
+
+                    // Check if the path is valid or not.
+                    if (dialog.SelectedPath != null)
+                    {
+                        if (!IsFolderFalloutNVInstallation(dialog.SelectedPath))
+                        {
+                            // Warn them, and then restart the process
+                            MessageBox.Show("New Vegas: Multiplayer", "The supplied path does not contain a valid Fallout: New Vegas installation.\n\nPlease select a folder that contains FalloutNV.exe!",
+                               MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            continue;
+                        }
+
+                        return dialog.SelectedPath;
+                    }
+                }
+            }
         }
     }
 }
