@@ -25,7 +25,7 @@ namespace ClientLauncher
         public const string FALLOUTNV_4GB_4 = "34B65096CAEF9374DD6AA39AF855E43308B417F2";
 
         // Waiting on community hashes
-        public const string FALLOUTNV_EPICGAMES_WOMP_WOMP = "NOT_FILLED_IN";
+        public const string FALLOUTNV_EPICGAMES_WOMP_WOMP = "F36D883F3E75DDD2AFFA84CDA3C2661706ECC08C";
 
         protected class HashDescription
         {
