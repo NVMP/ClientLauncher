@@ -1396,7 +1396,7 @@ namespace ClientLauncher
                 else
                 {
                     MessageBorder.Visibility = Visibility.Visible;
-                    MessageText_Control.Text = errorMsg;
+                    MessageText_Control.Text = errorMsg.Split('\n').FirstOrDefault();
                 }
             });
         }
