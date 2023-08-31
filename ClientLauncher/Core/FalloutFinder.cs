@@ -118,7 +118,8 @@ namespace ClientLauncher
                         if (!IsFolderFalloutNVInstallation(dialog.SelectedPath))
                         {
                             // Warn them, and then restart the process
-                            MessageBox.Show("New Vegas: Multiplayer", "The supplied path does not contain a valid Fallout: New Vegas installation.\n\nPlease select a folder that contains FalloutNV.exe!",
+                            MessageBox.Show("The supplied path does not contain a valid Fallout: New Vegas installation.\n\nPlease select a folder that contains FalloutNV.exe!",
+                                "New Vegas: Multiplayer",
                                MessageBoxButtons.OK, MessageBoxIcon.Error);
                             continue;
                         }
