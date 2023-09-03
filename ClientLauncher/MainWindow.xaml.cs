@@ -166,6 +166,7 @@ namespace ClientLauncher
                 StorageService.GamePathOverride = falloutDir;
             }
 
+#if !DEBUG
             // Now, check this launcher is running in the correct context. If we are running the launcher, but its current working directory is
             // not the one seen above, then run the other launcher.
             if (Directory.GetCurrentDirectory() != falloutDir)
@@ -185,6 +186,7 @@ namespace ClientLauncher
                 Close();
                 return;
             }
+#endif
 
             // External services pulled in now
 #if EOS_SUPPORTED
@@ -486,16 +488,16 @@ namespace ClientLauncher
                 ServerScroller.Visibility = Visibility.Visible;
             }
         }
-#endif 
+#endif
 
         protected override void OnClosing(CancelEventArgs e)
         {
             base.OnClosing(e);
 
-            EOSUpdateTimer.Stop();
+            EOSUpdateTimer?.Stop();
             QueryTimer?.Stop();
             
-            EOSUpdateTimer.Dispose();
+            EOSUpdateTimer?.Dispose();
             QueryTimer?.Dispose();
 
 #if EOS_SUPPORTED
