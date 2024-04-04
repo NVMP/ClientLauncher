@@ -150,7 +150,7 @@
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <Grid.Background>
-            <ImageBrush x:Name="BackgroundPanel" ImageSource="/Res/StaticBackgrounds/granda1.png" Stretch="UniformToFill"/>
+            <ImageBrush x:Name="BackgroundPanel" ImageSource="/Res/StaticBackgrounds/granda1_roughed_up.png" Stretch="UniformToFill"/>
         </Grid.Background>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="0*" />
