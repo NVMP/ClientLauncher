@@ -312,11 +312,13 @@ namespace ClientLauncher.Windows
                                                 }
                                             }
                                         }
-                                        catch (Exception)
+                                        catch (Exception e)
                                         {
-                                            MessageBox.Show($"Failed to download {serverMod.ModInfo.Name} due to internal error", "Download Error", 
+                                            MessageBox.Show($"Failed to download {serverMod.ModInfo.Name} due to internal error\n{e}", "Download Error", 
                                                 MessageBoxButton.OK, MessageBoxImage.Error);
 
+
+                                            
                                             serverMod.IsDownloading = false;
                                             serverMod.IsDownloaded = false;
                                         }

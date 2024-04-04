@@ -240,7 +240,7 @@
                         VerticalContentAlignment="Center" 
                         Height="26" 
                         VerticalAlignment="Bottom" 
-                        Margin="846.833,0,10,41" 
+                        Margin="528,0,329,10" 
                         FontSize="12"
                         Style="{DynamicResource ButtonGrey}" >
                 </Button>
@@ -251,8 +251,8 @@
                     </mc:Choice>
                 </mc:AlternateContent>
                 <Label x:Name="NoServersMessage" Content="No servers found" Height="37" Margin="380,90,413,0" VerticalAlignment="Top" Foreground="#FF999999" HorizontalAlignment="Center" Background="{x:Null}" Visibility="Hidden"/>
-                <Button x:Name="RepairSteam_Control" Click="SteamRepair_Click" Content="Validate Steam Integrity"  UseLayoutRounding="False" VerticalContentAlignment="Center" Height="26" VerticalAlignment="Bottom" Margin="464,0,0,10" HorizontalAlignment="Left" Width="135" Style="{DynamicResource ButtonGrey}" ToolTip="Will attempt at a Steam repair of Fallout: New Vegas" FontSize="10"/>
-                <PasswordBox x:Name="CustomToken"
+                <Button x:Name="RepairSteam_Control" Click="SteamRepair_Click" Content="Validate Steam Integrity"  UseLayoutRounding="False" VerticalContentAlignment="Center" Height="26" VerticalAlignment="Bottom" Margin="707,0,0,10" HorizontalAlignment="Left" Width="135" Style="{DynamicResource ButtonGrey}" ToolTip="Will attempt at a Steam repair of Fallout: New Vegas" FontSize="10"/>
+                <PasswordBox x:Name="CustomToken" Visibility="Hidden"
                              PasswordChanged="CustomToken_Changed"
                              Margin="604,0,189,10"
                              ToolTip="Username or token"
