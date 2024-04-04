@@ -240,18 +240,17 @@
                         VerticalContentAlignment="Center" 
                         Height="26" 
                         VerticalAlignment="Bottom" 
-                        Margin="528,0,329,10" 
+                        Margin="283,0,574,10" 
                         FontSize="12"
                         Style="{DynamicResource ButtonGrey}" >
                 </Button>
-
                 <mc:AlternateContent>
                     <mc:Choice Requires="mainbuild">
-                        <Button x:Name="Repair_Control" Click="Repair_Click" Content="Repair"  UseLayoutRounding="False" VerticalContentAlignment="Center" Height="26" VerticalAlignment="Bottom" Margin="389.812,0,0,10" HorizontalAlignment="Left" Width="69.188" Style="{DynamicResource ButtonGrey}" ToolTip="Repair will forcefully re-install the required files needed for NV:MP"/>
+                        <Button x:Name="Repair_Control" Click="Repair_Click" Content="Repair"  UseLayoutRounding="False" VerticalContentAlignment="Center" Height="26" VerticalAlignment="Bottom" Margin="682,0,0,10" HorizontalAlignment="Left" Width="69.188" Style="{DynamicResource ButtonGrey}" ToolTip="Repair will forcefully re-install the required files needed for NV:MP"/>
                     </mc:Choice>
                 </mc:AlternateContent>
                 <Label x:Name="NoServersMessage" Content="No servers found" Height="37" Margin="380,90,413,0" VerticalAlignment="Top" Foreground="#FF999999" HorizontalAlignment="Center" Background="{x:Null}" Visibility="Hidden"/>
-                <Button x:Name="RepairSteam_Control" Click="SteamRepair_Click" Content="Validate Steam Integrity"  UseLayoutRounding="False" VerticalContentAlignment="Center" Height="26" VerticalAlignment="Bottom" Margin="707,0,0,10" HorizontalAlignment="Left" Width="135" Style="{DynamicResource ButtonGrey}" ToolTip="Will attempt at a Steam repair of Fallout: New Vegas" FontSize="10"/>
+                <Button x:Name="RepairSteam_Control" Click="SteamRepair_Click" Content="Validate Steam Integrity"  UseLayoutRounding="False" VerticalContentAlignment="Center" Height="26" VerticalAlignment="Bottom" Margin="756,0,0,10" HorizontalAlignment="Left" Width="135" Style="{DynamicResource ButtonGrey}" ToolTip="Will attempt at a Steam repair of Fallout: New Vegas" FontSize="10"/>
                 <PasswordBox x:Name="CustomToken" Visibility="Hidden"
                              PasswordChanged="CustomToken_Changed"
                              Margin="604,0,189,10"
@@ -259,7 +258,7 @@
                              Background="#FF323232"
                              Foreground="White" BorderBrush="#FF323232" Height="26" VerticalAlignment="Bottom" VerticalContentAlignment="Center" Padding="3,0,0,0"
                              />
-                <Button x:Name="CopyToken" Click="CopyToken_Click" Content="Copy"  UseLayoutRounding="False" VerticalContentAlignment="Center" Height="26" VerticalAlignment="Bottom" Margin="0,0,140.167,10" HorizontalAlignment="Right" Width="44" Style="{DynamicResource ButtonGrey}"
+                <Button Visibility="Hidden" x:Name="CopyToken" Click="CopyToken_Click" Content="Copy"  UseLayoutRounding="False" VerticalContentAlignment="Center" Height="26" VerticalAlignment="Bottom" Margin="0,0,140.167,10" HorizontalAlignment="Right" Width="44" Style="{DynamicResource ButtonGrey}"
                         ToolTip="Copy your private token to clipboard"/>
                 <Label x:Name="LoadingServersMessage" Content="Loading servers..." Height="37" Margin="420,90,423,0" VerticalAlignment="Top" Foreground="#FF999999" HorizontalAlignment="Center" Background="{x:Null}" Width="108"/>
                 <Button x:Name="OverrideGameDir" Click="OverrideGameDir_Click" Content="Edit Game Directory"  UseLayoutRounding="False" VerticalContentAlignment="Center" Height="26" VerticalAlignment="Bottom" Margin="0,0,10,10" HorizontalAlignment="Right" Width="125.167" Style="{DynamicResource ButtonGrey}"
