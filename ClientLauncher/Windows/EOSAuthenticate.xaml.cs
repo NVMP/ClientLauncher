@@ -29,6 +29,8 @@ namespace ClientLauncher.Windows
 
         internal void TryToPresentFailureReason(string reason)
         {
+            ShowingSeamlessWindow(false);
+
             if (FailureReasonsToDisplayReason.TryGetValue(reason, out string value))
             {
                 ErrorMessageLabel.Text = value;
@@ -46,12 +48,40 @@ namespace ClientLauncher.Windows
             ErrorMessageLabel.Text = "";
         }
 
+        public void ShowingSeamlessWindow(bool seamless)
+        {
+            if (seamless)
+            {
+                // If we are seamless, the window is fully transparent and just the NV:MP logo is shown.
+                AllowsTransparency = true;
+                WindowStyle = WindowStyle.None;
+                Background = Brushes.Transparent;
+
+                NVMPLogo.Visibility = Visibility.Visible;
+
+                Authorizing_Button.Visibility = Visibility.Hidden;
+                SignIn_Button.Visibility = Visibility.Hidden;
+                OfflineMode_Label.Visibility = Visibility.Hidden;
+                BriefingLabel.Visibility = Visibility.Hidden;
+            }
+            else
+            {
+                // If we are not seamless, then the window is showing the full WPF window contents for login instructions.
+                AllowsTransparency = false;
+                WindowStyle = WindowStyle.ToolWindow;
+                Background = new BrushConverter().ConvertFrom("#FF1A1A1A") as SolidColorBrush;
+                NVMPLogo.Visibility = Visibility.Hidden;
+            }
+        }
+
         public EOSAuthenticate(MainWindow parentWindow)
         {
             //Visibility = Visibility.Hidden;
 
             ParentWindow = parentWindow;
             InitializeComponent();
+
+            ShowingSeamlessWindow(true);
 
             ParentWindow.EOSManager.TryAutoLogin((result) =>
             {

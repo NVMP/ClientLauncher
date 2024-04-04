@@ -9,7 +9,8 @@
         ResizeMode="NoResize"
         Icon="/Res/nvmp-logo-32x32.png"
         WindowStartupLocation="CenterScreen"
-        Title="Authenticate with Epic Games" Height="217.333" Width="420">
+        Title="Authenticate with Epic Games" Height="217.333" Width="420"
+        WindowStyle="ToolWindow">
     <Window.Resources>
 
 
@@ -43,7 +44,8 @@
             <ColumnDefinition Width="281*"/>
             <ColumnDefinition Width="133*"/>
         </Grid.ColumnDefinitions>
-        <TextBlock Foreground="#FFF" Margin="30,15,30,0" TextWrapping="Wrap" Height="55"  VerticalAlignment="Top" Grid.ColumnSpan="2">
+        <Image Name="NVMPLogo" Source="/Res/nvmp-sex.png" Grid.ColumnSpan="2" Visibility="Hidden"></Image>
+        <TextBlock Name="BriefingLabel" Foreground="#FFF" Margin="30,15,30,0" TextWrapping="Wrap" Height="55"  VerticalAlignment="Top" Grid.ColumnSpan="2">
             To play online with New Vegas: Multiplayer, you must authenticate with an Epic Games account, which will allow you to connect
             to authorize with other servers.
         </TextBlock>

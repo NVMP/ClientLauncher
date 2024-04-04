@@ -80,7 +80,7 @@
 
         <GradientStopCollection  x:Key="PanelGradient">
             <GradientStop Color="#000000" Offset="0" />
-            <GradientStop Color="#111" Offset="1" />
+            <GradientStop Color="#141414" Offset="1" />
         </GradientStopCollection>
 
         <Style x:Key="InfoButton" TargetType="Button">
@@ -174,7 +174,7 @@
         <Border x:Name="MessageBorder" Margin="21,0,158,32" VerticalAlignment="Bottom" Grid.Column="2" Height="24" Visibility="Hidden">
 
             <Border.Background>
-                <LinearGradientBrush EndPoint="0,0" StartPoint="1,0" Opacity="0.8" GradientStops="{StaticResource PanelGradient}" />
+                <LinearGradientBrush EndPoint="0,0" StartPoint="1,0" Opacity="0.6" GradientStops="{StaticResource PanelGradient}" />
             </Border.Background>
 
 
@@ -184,7 +184,7 @@
         <Border x:Name="NewsFeedBorder"  Grid.Column="2" Margin="21,136,21,61" Grid.ColumnSpan="2">
 
             <Border.Background>
-                <LinearGradientBrush EndPoint="0,0" StartPoint="1,0" Opacity="0.8" GradientStops="{StaticResource PanelGradient}" />
+                <LinearGradientBrush EndPoint="0,0" StartPoint="1,0" Opacity="0.6" GradientStops="{StaticResource PanelGradient}" />
             </Border.Background>
 
             <Grid>
@@ -310,7 +310,7 @@
         </Border>
         <Border x:Name="AuthBar"  Margin="376,0,73,0" Grid.ColumnSpan="3" Height="33" VerticalAlignment="Top" CornerRadius="0,0,10,10" Cursor="Hand">
             <Border.Background>
-                <LinearGradientBrush EndPoint="0,0" StartPoint="1,0" Opacity="0.8" GradientStops="{StaticResource PanelGradient}" />
+                <LinearGradientBrush EndPoint="0,0" StartPoint="1,0" Opacity="0.6" GradientStops="{StaticResource PanelGradient}" />
             </Border.Background>
 
             <Grid VerticalAlignment="Top" Height="33">

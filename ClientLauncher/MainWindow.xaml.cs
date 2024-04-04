@@ -84,10 +84,10 @@ namespace ClientLauncher
 
         static private DynamicBackground[] DynamicBackgrounds = new DynamicBackground[]
         {
-            new DynamicBackground { Filename = "granda1.png", Author = "granda1" },
-            new DynamicBackground { Filename = "misterdjd.png", Author = "MISTERDJD" },
-            new DynamicBackground { Filename = "raccoon.png", Author = "A WHOLE Lotta Raccoons" },
-            new DynamicBackground { Filename = "rusty shackleford.png", Author = "Rusty Shackleford" }
+            new DynamicBackground { Filename = "granda1_roughed_up.png", Author = "granda1" },
+            //new DynamicBackground { Filename = "misterdjd.png", Author = "MISTERDJD" },
+            //new DynamicBackground { Filename = "raccoon.png", Author = "A WHOLE Lotta Raccoons" },
+            //new DynamicBackground { Filename = "rusty shackleford.png", Author = "Rusty Shackleford" }
         };
 
         // Data
