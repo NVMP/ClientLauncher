@@ -128,6 +128,26 @@ namespace ClientLauncher
             }
         }
 
+        protected void KillProcessesByName(string exeName)
+        {
+            var nvmpProcesses = Process.GetProcessesByName(exeName);
+            if (nvmpProcesses.Length != 0)
+            {
+                var current = Process.GetCurrentProcess();
+                foreach (var process in nvmpProcesses)
+                {
+                    if (process != current)
+                    {
+                        try
+                        {
+                            process.Kill();
+                        }
+                        catch { }
+                    }
+                }
+            }
+        }
+
         public MainWindow()
         {
             HasGamePatched = false;
@@ -135,19 +155,10 @@ namespace ClientLauncher
             AboutWindowInstance = null;
             BlurLevel = 0;
 
-            string exeName = "nvmp_launcher";
-            var nvmpProcesses = Process.GetProcessesByName(exeName);
-            if (nvmpProcesses.Length > 1)
-            {
-                foreach (var process in nvmpProcesses)
-                {
-                    try
-                    {
-                        process.Kill();
-                    }
-                    catch { }
-                }
-            }
+            // these processes will share resources, and may mess up the patching process.
+            KillProcessesByName("nvmp_launcher");
+            KillProcessesByName("FalloutNV");
+            KillProcessesByName("FNVEdit");
 
             // Load the storage service
             StorageService = new LocalStorage();
@@ -1159,6 +1170,9 @@ namespace ClientLauncher
             // Start the game
             //
             GameActivityMonitor.ShutdownCurrentActivity();
+
+            // Kill running sessions
+            KillProcessesByName("falloutnv");
 
             // Get the EOS token and Product ID
             string jwtToken = "invalid_jwt_token";
