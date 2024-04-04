@@ -38,12 +38,14 @@ namespace ClientLauncher
         private static readonly string BroadcastServer = "https://nv-mp.com/";
 #endif
 
+#if !DEBUG
         private static readonly int TimerIntervalQueryServers = 60 * 1000 * 2;
+#endif
 
         // Services and instances for client auth
 #if !NEXUS_CANDIDATE
         public GithubPatchService PatchService;
-#endif 
+#endif
         public ProgramVersioning ProgramVersion;
         public LocalStorage StorageService;
 
@@ -94,7 +96,9 @@ namespace ClientLauncher
         private Windows.JoiningServerDisplay JoiningWindowInstance;
         private Windows.ManuallyJoinServerDisplay ManuallyJoinServerWindowInstance;
 
+#if !DEBUG
         private System.Timers.Timer QueryTimer;
+#endif
 
 #if EOS_SUPPORTED
         private System.Timers.Timer EOSUpdateTimer;
@@ -495,10 +499,11 @@ namespace ClientLauncher
             base.OnClosing(e);
 
             EOSUpdateTimer?.Stop();
-            QueryTimer?.Stop();
-            
             EOSUpdateTimer?.Dispose();
+#if !DEBUG
+            QueryTimer?.Stop();
             QueryTimer?.Dispose();
+#endif
 
 #if EOS_SUPPORTED
             EOSManager?.Dispose();
@@ -723,9 +728,9 @@ namespace ClientLauncher
             try
             {
                 var client = new RestClient(BroadcastServer);
-                var request = new RestRequest($"/serverlist", Method.GET);
+                var request = new RestRequest($"/serverlist", Method.Get);
 
-                IRestResponse response = await client.ExecuteAsync(request);
+                var response = await client.ExecuteAsync(request);
 
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
