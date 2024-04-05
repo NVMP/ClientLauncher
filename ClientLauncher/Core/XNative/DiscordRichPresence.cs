@@ -74,7 +74,7 @@ namespace ClientLauncher.Core.XNative
                         Client.SetPresence(new RichPresence()
                         {
                             Details = $"Playing on \"{Server.Name}\"",
-                            State = "In Game",
+                            State = $"In Game ({Server.NumPlayers}/{Server.MaxPlayers})",
                             Assets = new Assets()
                             {
                                 LargeImageKey = "nvmp-logo-1080x1080"

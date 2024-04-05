@@ -136,7 +136,7 @@ namespace ClientLauncher
                 var current = Process.GetCurrentProcess();
                 foreach (var process in nvmpProcesses)
                 {
-                    if (process != current)
+                    if (process.Id != current.Id)
                     {
                         try
                         {
@@ -612,7 +612,7 @@ namespace ClientLauncher
             int totalDaysEver = (int)(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() / 1000 / 60 / 60 / 24);
             int randomseed = (totalDaysEver / 7) - 1; /* -1 for the launch to use default bg */
             var rng = new Random(randomseed);
-            var bg = DynamicBackgrounds[rng.Next(0, DynamicBackgrounds.Length - 1)];
+            var bg = DynamicBackgrounds[rng.Next(0, DynamicBackgrounds.Length)];
 
             var uri = new Uri($"pack://application:,,,/ClientLauncher;component/Res/StaticBackgrounds/{bg.Filename}", UriKind.Absolute);
 
@@ -1172,7 +1172,7 @@ namespace ClientLauncher
             GameActivityMonitor.ShutdownCurrentActivity();
 
             // Kill running sessions
-            KillProcessesByName("falloutnv");
+            KillProcessesByName("FalloutNV");
 
             // Get the EOS token and Product ID
             string jwtToken = "invalid_jwt_token";
@@ -1446,7 +1446,7 @@ namespace ClientLauncher
             {
                 // Show the authentication window, if the window closes and the authentication still is not met - then close the program as an implicit
                 // closure of the program.
-                var eosAuthenticationWindow = new Windows.EOSAuthenticate(this);
+                var eosAuthenticationWindow = new Windows.EOSAuthenticate(this, hasLoggedOut: true);
                 eosAuthenticationWindow.ShowDialog();
 
                 if (EOSManager.User == null)

@@ -55,21 +55,21 @@ namespace ClientLauncher.Core.XNative
             if (CurrentActivity == null)
             {
                 DiscordRP.SetState(DiscordRichPresence.RichState.InActive);
-                ParentMainWindow.Dispatcher.Invoke(() =>
-                {
-                    ParentMainWindow.ShowInTaskbar = true;
-                    ParentMainWindow.Show();
-                    ParentMainWindow.NotifyIcon.Visibility = System.Windows.Visibility.Collapsed;
-                });
+                //ParentMainWindow.Dispatcher.Invoke(() =>
+                //{
+                //    ParentMainWindow.ShowInTaskbar = true;
+                //    ParentMainWindow.Show();
+                //    ParentMainWindow.NotifyIcon.Visibility = System.Windows.Visibility.Collapsed;
+                //});
                 return;
             }
 
-            ParentMainWindow.Dispatcher.Invoke(() =>
-            {
-                ParentMainWindow.ShowInTaskbar = true;
-                ParentMainWindow.Hide();
-                ParentMainWindow.NotifyIcon.Visibility = System.Windows.Visibility.Visible;
-            });
+            //ParentMainWindow.Dispatcher.Invoke(() =>
+            //{
+            //    ParentMainWindow.ShowInTaskbar = true;
+            //    ParentMainWindow.Hide();
+            //    ParentMainWindow.NotifyIcon.Visibility = System.Windows.Visibility.Visible;
+            //});
             DiscordRP.SetState(DiscordRichPresence.RichState.InGame, CurrentActivity);
         }
 

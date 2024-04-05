@@ -14,7 +14,7 @@ using System.Windows.Controls;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("NV:MP Team")]
 [assembly: AssemblyProduct("NV:MP Client and Patcher")]
-[assembly: AssemblyCopyright("Copyright ©  2021")]
+[assembly: AssemblyCopyright("Copyright ©  2024")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

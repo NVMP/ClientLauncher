@@ -50,38 +50,21 @@ namespace ClientLauncher.Windows
 
         public void ShowingSeamlessWindow(bool seamless)
         {
-            if (seamless)
-            {
-                // If we are seamless, the window is fully transparent and just the NV:MP logo is shown.
-                AllowsTransparency = true;
-                WindowStyle = WindowStyle.None;
-                Background = Brushes.Transparent;
-
-                NVMPLogo.Visibility = Visibility.Visible;
-
-                Authorizing_Button.Visibility = Visibility.Hidden;
-                SignIn_Button.Visibility = Visibility.Hidden;
-                OfflineMode_Label.Visibility = Visibility.Hidden;
-                BriefingLabel.Visibility = Visibility.Hidden;
-            }
-            else
-            {
-                // If we are not seamless, then the window is showing the full WPF window contents for login instructions.
-                AllowsTransparency = false;
-                WindowStyle = WindowStyle.ToolWindow;
-                Background = new BrushConverter().ConvertFrom("#FF1A1A1A") as SolidColorBrush;
-                NVMPLogo.Visibility = Visibility.Hidden;
-            }
         }
 
-        public EOSAuthenticate(MainWindow parentWindow)
+        public EOSAuthenticate(MainWindow parentWindow, bool hasLoggedOut = false)
         {
-            //Visibility = Visibility.Hidden;
-
             ParentWindow = parentWindow;
             InitializeComponent();
 
             ShowingSeamlessWindow(true);
+
+            if (hasLoggedOut)
+            {
+                Authorizing_Button.Visibility = Visibility.Hidden;
+                SignIn_Button.Visibility = Visibility.Visible;
+                OfflineMode_Label.Visibility = Visibility.Visible;
+            }
 
             ParentWindow.EOSManager.TryAutoLogin((result) =>
             {
@@ -107,6 +90,8 @@ namespace ClientLauncher.Windows
         private void Button_Click(object sender, RoutedEventArgs e)
         {
             HideFailureReason();
+
+            Hide();
 
             // Before we try to log in as a new user through flow (non-auto), we want to flush any persistent login from EOS.
             ParentWindow.EOSManager.LogoutFromPersistent();

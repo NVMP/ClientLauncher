@@ -5,12 +5,13 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ClientLauncher.Windows"
         mc:Ignorable="d"
-        Background="#FF1A1A1A"
         ResizeMode="NoResize"
         Icon="/Res/nvmp-logo-32x32.png"
         WindowStartupLocation="CenterScreen"
         Title="Authenticate with Epic Games" Height="217.333" Width="420"
-        WindowStyle="ToolWindow">
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent">
     <Window.Resources>
 
 
@@ -44,8 +45,8 @@
             <ColumnDefinition Width="281*"/>
             <ColumnDefinition Width="133*"/>
         </Grid.ColumnDefinitions>
-        <Image Name="NVMPLogo" Source="/Res/nvmp-sex.png" Grid.ColumnSpan="2" Visibility="Hidden"></Image>
-        <TextBlock Name="BriefingLabel" Foreground="#FFF" Margin="30,15,30,0" TextWrapping="Wrap" Height="55"  VerticalAlignment="Top" Grid.ColumnSpan="2">
+        <Image Name="NVMPLogo" Source="/Res/nvmp-sex.png" Grid.ColumnSpan="2" Margin="0,0,0,101"></Image>
+        <TextBlock Visibility="Hidden" Name="BriefingLabel" Foreground="#FFF" Margin="30,15,30,0" TextWrapping="Wrap" Height="55"  VerticalAlignment="Top" Grid.ColumnSpan="2">
             To play online with New Vegas: Multiplayer, you must authenticate with an Epic Games account, which will allow you to connect
             to authorize with other servers.
         </TextBlock>
@@ -64,8 +65,7 @@
                 Launch in offline mode
             </TextBlock>
         </StackPanel>
-        <TextBlock Name="Authorizing_Button" Foreground="#CCC" Margin="30,0,30,30" VerticalAlignment="Bottom" Height="47" TextAlignment="Center" Padding="20,15,20,20" Visibility="Visible" Grid.ColumnSpan="2">
-            Authorizing with Epic Games...
+        <TextBlock Name="Authorizing_Button" Foreground="#FFF" Margin="30,0,30,30" VerticalAlignment="Bottom" Height="34" TextAlignment="Center" Padding="20,15,20,20" Visibility="Visible" Grid.ColumnSpan="2">
         </TextBlock>
         <TextBlock Name="ErrorMessageLabel" Padding="15,5,15,15" Height="25" VerticalAlignment="Bottom" TextAlignment="Center" Foreground="#F00" FontSize="9" FontWeight="Bold" Grid.ColumnSpan="2">
         </TextBlock>
