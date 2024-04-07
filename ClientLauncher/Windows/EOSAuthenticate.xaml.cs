@@ -91,8 +91,6 @@ namespace ClientLauncher.Windows
         {
             HideFailureReason();
 
-            Hide();
-
             // Before we try to log in as a new user through flow (non-auto), we want to flush any persistent login from EOS.
             ParentWindow.EOSManager.LogoutFromPersistent();
 
