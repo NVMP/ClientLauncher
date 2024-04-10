@@ -1333,6 +1333,7 @@ namespace ClientLauncher
                     {
                         FalloutDirectory = FalloutFinder.GameDir(StorageService),
                         ServerMods = server.Mods,
+                        ServerPackages = server.RequiredExternalMods,
                         DownloadResourceURL = server.ModsDownloadURL,
                     };
 

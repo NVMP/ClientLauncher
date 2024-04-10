@@ -1,4 +1,5 @@
 ﻿using ClientLauncher.Core;
+using ClientLauncher.Core.XNative;
 using ClientLauncher.Dtos;
 using System;
 using System.Collections.Generic;
@@ -123,6 +124,8 @@ namespace ClientLauncher.Windows
         }
 
         private ObservableCollection<ServerModDisplay> ServerModList;
+        private List<Task> PackagesDownloading = new List<Task>();
+        public List<string> ServerPackages;
 
         public IEnumerable<DtoServerModInfo> ServerMods
         {
@@ -178,8 +181,44 @@ namespace ClientLauncher.Windows
         {
             Trace.WriteLine("Updating mod states...");
             bool hasAllModsInstalled = true;
+            bool hasAllPackagesInstalled = true;
+
             bool anyBlockedDownloads = false;
             bool requiresMapping = false;
+
+            if (ServerPackages != null)
+            {
+                foreach (var packageName in ServerPackages)
+                {
+                    // skip over any packages already on disk
+                    if (PackageManager.IsPackageInstalled(packageName, FalloutDirectory))
+                    {
+                        continue;
+                    }
+
+                    hasAllPackagesInstalled = false;
+
+                    if (acquireMods)
+                    {
+                        Trace.WriteLine($"Scheduling package {packageName} for download.");
+                        var task = Task.Run(() =>
+                        {
+                            if (!PackageManager.DownloadAndExtract(packageName, FalloutDirectory))
+                            {
+                                Trace.WriteLine($"Package {packageName} failed");
+                            }
+
+                            var _ = Dispatcher.InvokeAsync(async () =>
+                            {
+                                await Task.Delay(250);
+                                UpdateModStates();
+                            });
+                        });
+
+                        PackagesDownloading.Add(task);
+                    }
+                }
+            }
 
             foreach (ServerModDisplay serverMod in ServerModList)
             {
@@ -379,10 +418,18 @@ namespace ClientLauncher.Windows
                 }
             }
 
+            foreach (var package in PackagesDownloading)
+            {
+                if (package.Status == TaskStatus.Running)
+                {
+                    hasAllPackagesInstalled = false;
+                }
+            }
+
             bool anyPendingAcquires = ServerModList.Any(mod => mod.AcquisionTask != null && !mod.HasProcessed);
             Install_All.IsEnabled = !anyBlockedDownloads && !anyPendingAcquires;
 
-            if (hasAllModsInstalled)
+            if (hasAllModsInstalled && hasAllPackagesInstalled)
             {
                 if (acquireMods || requiresMapping)
                 {

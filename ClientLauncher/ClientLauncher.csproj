@@ -241,6 +241,7 @@
     <Compile Include="Core\XNativeConfig.cs" />
     <Compile Include="Core\XNative\DiscordRichPresence.cs" />
     <Compile Include="Core\XNative\GameActivityMonitor.cs" />
+    <Compile Include="Core\XNative\PackageManager.cs" />
     <Compile Include="Core\XNative\ProgramVersioning.cs" />
     <Compile Include="Core\XNative\ServerProbe.cs" />
     <Compile Include="DiscordSDK\ActivityManager.cs" />
@@ -466,6 +467,15 @@
     <Resource Include="Res\discord-mark-black.png" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="7za.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="7za.exe">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="7zxa.dll">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="discord_game_sdk.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

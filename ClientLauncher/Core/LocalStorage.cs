@@ -23,7 +23,7 @@ namespace ClientLauncher.Core
 
         private static List<string> TrustedDefaultServers = new List<string>
         {
-            "eden.nv-mp.com:27017"
+            "murica-east.nv-mp.com:27017"
         };
 
         [XmlRoot("dictionary")]
