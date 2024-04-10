@@ -63,6 +63,14 @@ namespace ClientLauncher.Core.XNative
                 Type = PackageType.Archive7Z,
                 BaseName = "nvse",
                 DestinationRoot = "", // Extract to the root
+            } },
+
+            // New Vegas Tick Fix
+            { "nvtf", new Package {
+                URL = "https://github.com/nvmp-main/New-Vegas-Tick-Fix/releases/download/10.2.2.3b/nvtf.7z",
+                Type = PackageType.Archive7Z,
+                BaseName = "nvtf",
+                DestinationRoot = ""
             } }
         };
 
