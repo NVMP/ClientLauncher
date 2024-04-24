@@ -1177,10 +1177,12 @@ namespace ClientLauncher
             // Get the EOS token and Product ID
             string jwtToken = "invalid_jwt_token";
             string productId = "invalid_product_id";
+            string displayName = "Courier";
 
             if (EOSManager.User != null)
             {
                 productId = EOSManager.User.ProductId;
+                displayName = EOSManager.User.DisplayName;
                 jwtToken = EOSManager.GetProductAuthToken();
                 
                 if (jwtToken == null)
@@ -1190,11 +1192,12 @@ namespace ClientLauncher
                     VerifyOrRunOtherGameLauncher(falloutDir, copyIfMissing: true);
                     return false;
                 }
+
             }
 
             var game = new Process();
             game.StartInfo.FileName             = installation.NVMPExe;
-            game.StartInfo.Arguments            = $"{server.IP} {server.Port} {installation.GameID} {HttpUtility.UrlEncode(jwtToken)} {HttpUtility.UrlEncode(productId)} \"{modsList}\"";
+            game.StartInfo.Arguments            = $"{server.IP} {server.Port} {installation.GameID} {HttpUtility.UrlEncode(jwtToken)} {HttpUtility.UrlEncode(productId)} \"{modsList}\" \"{displayName}\"";
             game.StartInfo.UseShellExecute      = true;
             game.StartInfo.WorkingDirectory     = installation.GameDirectory;
             game.EnableRaisingEvents            = true;

@@ -453,7 +453,9 @@
   <ItemGroup>
     <Resource Include="Res\icon_clyde_white_RGB.png" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Res\PatchFiles\" />
+  </ItemGroup>
   <ItemGroup>
     <Resource Include="Res\patreon.png" />
   </ItemGroup>
