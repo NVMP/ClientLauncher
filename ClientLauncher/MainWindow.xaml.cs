@@ -1013,7 +1013,10 @@ namespace ClientLauncher
             // Only require steam if the folder has a steam api present
             if (File.Exists(result.GameDirectory + "\\steam_api.dll"))
             {
-                Process[] SteamInstance = Process.GetProcessesByName("Steam");
+                Process[] SteamInstanceWindows = Process.GetProcessesByName("Steam");
+                Process[] SteamInstanceLinux = Process.GetProcessesByName("steam");
+
+                Process[] SteamInstance = SteamInstanceWindows.Concat(SteamInstanceLinux).ToArray();
                 if (SteamInstance.Length == 0)
                 {
                     throw new Exception("Steam is not running, please ensure it is running");
