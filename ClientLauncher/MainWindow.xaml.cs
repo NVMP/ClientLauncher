@@ -84,7 +84,8 @@ namespace ClientLauncher
 
         static private DynamicBackground[] DynamicBackgrounds = new DynamicBackground[]
         {
-            new DynamicBackground { Filename = "granda1_roughed_up.png", Author = "granda1" },
+            new DynamicBackground { Filename = "misterdjd_roughed_up.png", Author = "misterdjd" },
+            //new DynamicBackground { Filename = "granda1_roughed_up.png", Author = "granda1" },
             //new DynamicBackground { Filename = "misterdjd.png", Author = "MISTERDJD" },
             //new DynamicBackground { Filename = "raccoon.png", Author = "A WHOLE Lotta Raccoons" },
             //new DynamicBackground { Filename = "rusty shackleford.png", Author = "Rusty Shackleford" }
@@ -101,6 +102,7 @@ namespace ClientLauncher
 #endif
 
 #if EOS_SUPPORTED
+        private CancellationTokenSource EOSCancellation;
         private System.Timers.Timer EOSUpdateTimer;
 #endif
 
@@ -421,11 +423,12 @@ namespace ClientLauncher
                 return;
             }
 
+            EOSCancellation = new CancellationTokenSource();
             EOSUpdateTimer = new System.Timers.Timer
             {
-                Interval = 10
+                Interval = 250
             };
-            EOSUpdateTimer.Elapsed += (_, __) => Dispatcher.Invoke(() => { try { EOSManager.Tick(); } catch { } }, System.Windows.Threading.DispatcherPriority.Render);
+            EOSUpdateTimer.Elapsed += (_, __) => Dispatcher.Invoke(() => { try { EOSManager.Tick(); } catch { } }, System.Windows.Threading.DispatcherPriority.Render, EOSCancellation.Token);
             EOSUpdateTimer.Start();
 
             if (EOSManager.User == null)
@@ -509,8 +512,15 @@ namespace ClientLauncher
         {
             base.OnClosing(e);
 
-            EOSUpdateTimer?.Stop();
-            EOSUpdateTimer?.Dispose();
+            EOSCancellation.Cancel();
+
+            if (EOSUpdateTimer != null)
+            {
+                EOSUpdateTimer.Enabled = false;
+                EOSUpdateTimer.Stop();
+                EOSUpdateTimer.Dispose();
+            }
+
 #if !DEBUG
             QueryTimer?.Stop();
             QueryTimer?.Dispose();
@@ -684,7 +694,7 @@ namespace ClientLauncher
                         {
                             SortServerList();
                         }
-                    });
+                    }, EOSCancellation.Token);
                 }
 
                 ServerList.SelectedIndex = SoftReturnPosition;

@@ -81,7 +81,12 @@ namespace ClientLauncher.Windows.Modals
                     }
                 });
             }
-            catch { }
+            catch (Exception ex)
+            {
+                LinkExternally.Cursor = Cursors.Hand;
+                LinkExternally.IsEnabled = true;
+                TryToPresentFailureReason("Internal Error - " + ex.Message);
+            }
         }
     }
 }
