@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace ClientLauncher.Core.XNative
 {
@@ -42,6 +43,11 @@ namespace ClientLauncher.Core.XNative
             public string DestinationRoot { get; set; }
 
             /// <summary>
+            /// Sample file to search for. If this doesn't exist, a redownload is made.
+            /// </summary>
+            public string SampleFile { get; set; }
+
+            /// <summary>
             /// Sets the base name of the package, this allows other packages to override the same files.
             /// </summary>
             public string BaseName { get; set; }
@@ -63,6 +69,7 @@ namespace ClientLauncher.Core.XNative
                 Type = PackageType.Archive7Z,
                 BaseName = "nvse",
                 DestinationRoot = "", // Extract to the root
+                SampleFile = "nvse_1_4.dll"
             } },
 
             // New Vegas Tick Fix
@@ -70,7 +77,8 @@ namespace ClientLauncher.Core.XNative
                 URL = "https://github.com/nvmp-main/New-Vegas-Tick-Fix/releases/download/10.2.2.3b/nvtf.7z",
                 Type = PackageType.Archive7Z,
                 BaseName = "nvtf",
-                DestinationRoot = ""
+                DestinationRoot = "",
+                SampleFile = "Data\\NVSE\\Plugins\\NVTF.dll"
             } }
         };
 
@@ -119,7 +127,22 @@ namespace ClientLauncher.Core.XNative
                 if (File.Exists(packageManifest))
                 {
                     // if the base name does not match the manifest url, then it means we need to override this package, meaning redownload.
-                    return File.ReadAllText(packageManifest) == $"{resolver.URL}@{Revision}";
+                    if (File.ReadAllText(packageManifest) != $"{resolver.URL}@{Revision}")
+                    {
+                        return false;
+                    }
+
+                    // validate that the sample file exists
+                    if (!string.IsNullOrEmpty(resolver.SampleFile))
+                    {
+                        string sampleFile = Path.Combine(gameRoot, resolver.DestinationRoot, resolver.SampleFile);
+                        if (!File.Exists(sampleFile))
+                        {
+                            return false;
+                        }
+                    }
+
+                    return true;
                 }
             }
 
