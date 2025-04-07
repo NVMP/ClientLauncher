@@ -260,6 +260,9 @@
     <Compile Include="Core\Firewall.cs" />
     <Compile Include="Core\LocalStorage.cs" />
     <Compile Include="Converters\BooleanToVisibilityConverter.cs" />
+    <Compile Include="Windows\TOSDisplay.xaml.cs">
+      <DependentUpon>TOSDisplay.xaml</DependentUpon>
+    </Compile>
     <Page Include="Windows\About.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -316,6 +319,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Windows\PatchDisplay.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Windows\TOSDisplay.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -481,6 +488,7 @@
     <Content Include="discord_game_sdk.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Resource Include="Res\StaticBackgrounds\castle.png" />
     <Resource Include="Res\StaticBackgrounds\misterdjd_roughed_up.png" />
     <Resource Include="Res\StaticBackgrounds\granda1_roughed_up.png" />
   </ItemGroup>

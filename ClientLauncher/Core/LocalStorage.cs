@@ -231,6 +231,12 @@ namespace ClientLauncher.Core
 
             [DataMember]
             public SerializableDictionary<string, AuthenticationKey> SavedServerKeys { get; set; } = new SerializableDictionary<string, AuthenticationKey>();
+
+            [DataMember]
+            public string LastTermsOfService { get; set; } = null;
+
+            [DataMember]
+            public string LastPrivacyPolicy { get; set; } = null;
         }
 
         public string  CustomToken
@@ -278,6 +284,38 @@ namespace ClientLauncher.Core
             get
             {
                 return InternalData.PreviousCustomIP;
+            }
+        }
+
+        public string LastTermsOfService
+        {
+            set
+            {
+                if (InternalData.LastTermsOfService != value)
+                {
+                    InternalData.LastTermsOfService = value;
+                    Save();
+                }
+            }
+            get
+            {
+                return InternalData.LastTermsOfService;
+            }
+        }
+
+        public string LastPrivacyPolicy
+        {
+            set
+            {
+                if (InternalData.LastPrivacyPolicy != value)
+                {
+                    InternalData.LastPrivacyPolicy = value;
+                    Save();
+                }
+            }
+            get
+            {
+                return InternalData.LastPrivacyPolicy;
             }
         }
 

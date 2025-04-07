@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace ClientLauncher.Core
 {
@@ -162,7 +163,10 @@ namespace ClientLauncher.Core
             {
                 try
                 {
-                    UnmapAllVirtualFiles();
+                    if (!UnmapAllVirtualFiles())
+                    {
+                        MessageBox.Show("Unable to unmap previous server files from disk! The server may complain about invalid mod revisions.", "New Vegas: Multiplayer");
+                    }
                     File.WriteAllText(watermarkFile, UniqueFolderName);
                 }
                 catch { }
@@ -220,7 +224,7 @@ namespace ClientLauncher.Core
         /// <summary>
         /// Unmaps ALL virtual files in the game data folder.
         /// </summary>
-        internal void UnmapAllVirtualFiles()
+        internal bool UnmapAllVirtualFiles()
         {
             var files = Directory.GetFiles(GameDataFolder, "*", SearchOption.TopDirectoryOnly);
             foreach (string file in files)
@@ -237,11 +241,15 @@ namespace ClientLauncher.Core
                         {
                             File.Delete(file);
                         }
-                        catch { }
+                        catch
+                        {
+                            return false;
+                        }
                     }
-
                 }
             }
+
+            return true;
         }
 
         /// <summary>

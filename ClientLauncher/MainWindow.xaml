@@ -13,6 +13,14 @@
 
     <Window.Resources>
         <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        
+        <Style TargetType="Label">
+            <Style.Triggers>
+                <Trigger Property="Content" Value="">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
 
         <Style x:Key="ButtonGrey">
             <Setter Property="Control.Background" Value="#FF212121"/>
@@ -196,7 +204,10 @@
                     <Label Padding="5px" Background="Transparent" Foreground="White" Margin="107.24,0,421,0">Name</Label>
                 </Grid>
 
-                <ScrollViewer Name="ServerScroller" Margin="10,79,10,72" VerticalScrollBarVisibility="Auto" Visibility="Hidden">
+                <ScrollViewer Name="ServerScroller" Margin="10,79,10,72"
+                              VerticalScrollBarVisibility="Auto"
+                              Visibility="Hidden"
+                              ScrollViewer.CanContentScroll="True">
                     <!-- implementation -->
                     <ListBox x:Name="ServerList"
                              SelectionChanged="ServerItem_Selected"
@@ -204,8 +215,7 @@
                              Background="{x:Null}"
                              BorderBrush="{x:Null}"
                              VerticalAlignment="Top"
-                             HorizontalContentAlignment="Stretch"
-                             ScrollViewer.CanContentScroll="True">
+                             HorizontalContentAlignment="Stretch">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
                                 <Grid Height="Auto" Margin="0px 10px 0px 10px">

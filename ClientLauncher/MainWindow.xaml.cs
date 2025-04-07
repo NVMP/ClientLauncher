@@ -84,11 +84,12 @@ namespace ClientLauncher
 
         static private DynamicBackground[] DynamicBackgrounds = new DynamicBackground[]
         {
-            new DynamicBackground { Filename = "misterdjd_roughed_up.png", Author = "misterdjd" },
-            //new DynamicBackground { Filename = "granda1_roughed_up.png", Author = "granda1" },
+            new DynamicBackground { Filename = "castle.png", Author = "Castle" },
+            //new DynamicBackground { Filename = "misterdjd_roughed_up.png", Author = "misterdjd" },
+            new DynamicBackground { Filename = "granda1_roughed_up.png", Author = "granda1" },
             //new DynamicBackground { Filename = "misterdjd.png", Author = "MISTERDJD" },
             //new DynamicBackground { Filename = "raccoon.png", Author = "A WHOLE Lotta Raccoons" },
-            //new DynamicBackground { Filename = "rusty shackleford.png", Author = "Rusty Shackleford" }
+            new DynamicBackground { Filename = "rusty shackleford.png", Author = "Rusty Shackleford" }
         };
 
         // Data
@@ -268,8 +269,14 @@ namespace ClientLauncher
             // connecting to servers. They will be incompatible. 
             if (ProgramVersion.IsOutOfDate)
             {
-                MessageBox.Show($"NV:MP ({ProgramVersion.CurrentVersion}) is out of date. Please update NV:MP via the Nexus mod page to version {ProgramVersion.LatestRelease.tag_name}, or through your mod manager."
-                    , "New Vegas: Multiplayer", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                var result = MessageBox.Show($"NV:MP ({ProgramVersion.CurrentVersion}) is out of date. Please update NV:MP via the Nexus mod page to version {ProgramVersion.LatestRelease.tag_name}, or through your mod manager.\n\nAlternatively, you can download the latest PTC via GitHub\nWould you like to do this now?"
+                    , "New Vegas: Multiplayer", MessageBoxButton.OKCancel, MessageBoxImage.Exclamation);
+
+                if (result == MessageBoxResult.OK)
+                {
+                    Process.Start("https://github.com/NVMP/ClientDistribution/releases/latest");
+                }
+
                 Close();
                 return;
             }
@@ -482,6 +489,24 @@ namespace ClientLauncher
             }
 
             Activate();
+
+            // Fire off a TOS query
+            Task.Run(() =>
+            {
+                using (var wc = new WebClient())
+                {
+                    try
+                    {
+                        var tos = wc.DownloadString("https://nv-mp.com/tos");
+                        var privacy = wc.DownloadString("https://nv-mp.com/privacy");
+                        Dispatcher.Invoke(() =>
+                        {
+                            CapturedAgreements(tos, privacy);
+                        });
+                    }
+                    catch { }
+                }
+            });
         }
 
 #if EOS_SUPPORTED
@@ -530,6 +555,41 @@ namespace ClientLauncher
             EOSManager?.Dispose();
 #endif
             GameActivityMonitor?.Shutdown();
+        }
+
+        protected void CapturedAgreements(string tos, string privacy)
+        {
+            PushWindowBlur();
+            if (tos != null && tos != StorageService.LastTermsOfService)
+            {
+                var tosWindow = new Windows.TOSDisplay(tos);
+                tosWindow.ShowDialog();
+
+                if (!tosWindow.IsAccepted)
+                {
+                    Close();
+                    return;
+                }
+
+                StorageService.LastTermsOfService = tos;
+            }
+
+            if (privacy != null && privacy != StorageService.LastPrivacyPolicy)
+            {
+                var privacyWindow = new Windows.TOSDisplay(privacy);
+                privacyWindow.ShowDialog();
+                PopWindowBlur();
+
+                if (!privacyWindow.IsAccepted)
+                {
+                    Close();
+                    return;
+                }
+
+                StorageService.LastPrivacyPolicy = privacy;
+            }
+
+            PopWindowBlur();
         }
 
         public void VerifyOrRunOtherGameLauncher(string falloutDir, bool copyIfMissing = false)

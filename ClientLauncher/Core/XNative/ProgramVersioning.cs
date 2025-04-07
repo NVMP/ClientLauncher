@@ -190,7 +190,7 @@ namespace ClientLauncher.Core.XNative
 
                 if (IsOutOfDate)
                 {
-                    tags.Add("[Update {LatestRelease.tag_name} Available]");
+                    tags.Add($"[Update {LatestRelease.tag_name} Available]");
                 }
 
                 if (IsCurrentBuildStale)
