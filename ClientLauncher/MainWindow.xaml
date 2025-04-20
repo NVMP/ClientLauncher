@@ -196,12 +196,12 @@
             </Border.Background>
 
             <Grid>
-                <Label x:Name="BrowserTitle" Content="Public Server Browser" Height="37" Margin="17,10,122,0" VerticalAlignment="Top" FontSize="20" Foreground="White"/>
+                <Label x:Name="BrowserTitle" Content="Public Server Browser" Height="37" Margin="17,10,122,0" VerticalAlignment="Top" FontSize="20" Foreground="White" FontWeight="Bold"/>
 
                 <Grid Style="{DynamicResource ServerHeader}" VerticalAlignment="Top" Margin="17,47,17,0" Height="27">
-                    <Label Padding="5px" Background="Transparent" Foreground="White" HorizontalAlignment="Left" Width="53.62">Ping</Label>
-                    <Label Padding="5px" Background="Transparent" Foreground="White" HorizontalAlignment="Left" Width="53.62" Margin="53.62,0,0,0">Players</Label>
-                    <Label Padding="5px" Background="Transparent" Foreground="White" Margin="107.24,0,421,0">Name</Label>
+                    <Label Padding="5px" Background="Transparent" Foreground="White" HorizontalAlignment="Left" Width="53.62" FontWeight="Bold">Ping</Label>
+                    <Label Padding="5px" Background="Transparent" Foreground="White" HorizontalAlignment="Left" Width="53.62" Margin="53.62,0,0,0" FontWeight="Bold">Players</Label>
+                    <Label Padding="5px" Background="Transparent" Foreground="White" Margin="107.24,0,421,0" FontWeight="Bold">Name</Label>
                 </Grid>
 
                 <ScrollViewer Name="ServerScroller" Margin="10,79,10,72"
@@ -218,23 +218,30 @@
                              HorizontalContentAlignment="Stretch">
                         <ListBox.ItemTemplate>
                             <DataTemplate>
-                                <Grid Height="Auto" Margin="0px 10px 0px 10px">
+                                <Grid Height="Auto" Margin="0px 5px 0px 5px">
                                     <Label Background="Transparent" Foreground="White" HorizontalAlignment="Left" Content="{Binding DisplayPing}"/>
                                     <Label Background="Transparent" Foreground="White" HorizontalAlignment="Left" Margin="53.62,0,0,0" Content="{Binding DisplayPlayers}"/>
-                                    <Grid Margin="107.24,0,0,0" >
-                                        <Label Background="Transparent" Foreground="White"  Margin="0,0,0,0" 
+                                    <StackPanel Margin="107.24,3px,0,0">
+                                        <Label Grid.Row="0" Background="Transparent" Foreground="White" 
                                            Content="{Binding Name}"
                                            FontWeight="Bold"
+                                           FontSize="15px"
+                                           Margin="0 0 0 3px"
+                                           Padding="0"
                                            />
-                                        <Label Background="Transparent" Foreground="White" Padding="5,25,5,5" 
-                                           Content="{Binding Description}"
+                                        <Label Grid.Row="1" Background="Transparent" Foreground="White" 
+                                           Content="{Binding SanitizedDescription}"
+                                           Margin="0 0 0 0"
+                                           Padding="0"
                                            />
                                         <!-- state -->
-                                        <Label Visibility="{Binding StarredResourceVisibility}" Foreground="#CCC"
-                                                Padding="5,50,5,5">
+                                        <Label Grid.Row="2" Visibility="{Binding StarredResourceVisibility}" Foreground="#b39339"
+                                               FontWeight="Bold"
+                                               Margin="0 5px 0 0"
+                                               Padding="0">
                                             Trusted Server
                                         </Label>
-                                    </Grid>
+                                    </StackPanel>
                                 </Grid>
                             </DataTemplate>
                         </ListBox.ItemTemplate>

@@ -103,5 +103,24 @@ namespace ClientLauncher.Dtos
                 return $"{IP}:{Port}";
             }
         }
+
+        public string SanitizedDescription
+        {
+            get
+            {
+                // Only allowed for official servers to prevent misuse of the system.
+                if (IsStarred)
+                {
+                    if (Description == "A New Vegas Multiplayer server")
+                    {
+                        return "";
+                    }
+
+                    return Description;
+                }
+
+                return "";
+            }
+        }
     }
 }

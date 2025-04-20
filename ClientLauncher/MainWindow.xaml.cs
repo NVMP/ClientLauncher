@@ -31,16 +31,9 @@ namespace ClientLauncher
     public partial class MainWindow : Window
     {
         // Global constants
-
-#if DEBUG && false
-        private static readonly string BroadcastServer = "http://localhost:8030/";
-#else
         private static readonly string BroadcastServer = "https://nv-mp.com/";
-#endif
 
-#if !DEBUG
         private static readonly int TimerIntervalQueryServers = 60 * 1000 * 2;
-#endif
 
         // Services and instances for client auth
 #if !NEXUS_CANDIDATE
@@ -98,9 +91,7 @@ namespace ClientLauncher
         private Windows.JoiningServerDisplay JoiningWindowInstance;
         private Windows.ManuallyJoinServerDisplay ManuallyJoinServerWindowInstance;
 
-#if !DEBUG
         private System.Timers.Timer QueryTimer;
-#endif
 
 #if EOS_SUPPORTED
         private CancellationTokenSource EOSCancellation;
@@ -162,6 +153,7 @@ namespace ClientLauncher
             KillProcessesByName("nvmp_launcher");
             KillProcessesByName("FalloutNV");
             KillProcessesByName("FNVEdit");
+            KillProcessesByName("FNVEdit64");
 
             // Load the storage service
             StorageService = new LocalStorage();
@@ -296,7 +288,6 @@ namespace ClientLauncher
 #endif
                 HasGamePatched = true;
 
-#if !DEBUG
                 QueryTimer = new System.Timers.Timer {
                     Interval = TimerIntervalQueryServers
                 };
@@ -308,91 +299,9 @@ namespace ClientLauncher
                 {
                     QueryServers();
                 });
-#endif
 
                 new Thread(delegate ()
                 {
-#if DEBUG
-                    Dispatcher.Invoke(() =>
-                    {
-                        var dbgServerList = new List<DtoGameServer>();
-
-                        Func<string> randomIPGen = () =>
-                        {
-                            var items = new string[] { "google.com", "nv-mp.com", "domain.com", "10.0.0.2", "128.0.0.1", "74.3.2.5", "1.2.3.4" };
-                            return items[rng.Next(items.Length - 1)];
-                        };
-
-                        Func<ushort> randomPortGen = () =>
-                        {
-                            return (ushort)rng.Next(1000, ushort.MaxValue);
-                        };
-
-                        Func<string> randomNameGen = () =>
-                        {
-                            var items = new string[] { "A New Vegas Multiplayer server", "My Server", "Cool Server Dot Com", "Battle of the Brutes", "DOG",
-                        "Point Lookout Deathmatch | 64 Tick" };
-                            return items[rng.Next(items.Length - 1)];
-                        };
-
-                        Func<int> randomMaxPlayersGen = () =>
-                        {
-                            return rng.Next(0, 64);
-                        };
-
-                        // add a good fair few low pop servers
-                        for (int i = 0; i < 32; ++i)
-                        {
-                            var maxPlayers = randomMaxPlayersGen();
-                            var playerDensity = (float)rng.NextDouble();
-
-                            var server = new DtoGameServer
-                            {
-                                IP = randomIPGen(),
-                                Port = randomPortGen(),
-                                Name = randomNameGen(),
-                                MaxPlayers = maxPlayers,
-                                NumPlayers = playerDensity >= 0.25 ? (int)((float)maxPlayers * playerDensity) : 0
-                            };
-
-                            dbgServerList.Add(server);
-                        }
-
-                        // add some high pop servers
-                        for (int i = 0; i < 5; ++i)
-                        {
-                            var maxPlayers = 64;
-                            var playerDensity = (float)rng.NextDouble();
-
-                            var server = new DtoGameServer
-                            {
-                                IP = randomIPGen(),
-                                Port = randomPortGen(),
-                                Name = randomNameGen(),
-                                MaxPlayers = maxPlayers,
-                                NumPlayers = 45
-                            };
-
-                            dbgServerList.Add(server);
-                        }
-
-                        // add the main server
-                        var main = new DtoGameServer
-                        {
-                            IP = "eden.nv-mp.com",
-                            Port = 27017,
-                            Name = "[OFFICIAL] Freeroam Server",
-                            MaxPlayers = 45,
-                            NumPlayers = 2
-                        };
-
-                        dbgServerList.Add(main);
-
-                        ProcessRemoteServerList(dbgServerList);
-                        NoServersMessage.Visibility = Visibility.Hidden;
-                        LoadingServersMessage.Visibility = Visibility.Hidden;
-                    });
-#endif
                     try
                     {
                         GetAndVerifyInstallation();
@@ -697,20 +606,20 @@ namespace ClientLauncher
                 // Sort the servers
                 Trace.WriteLine("Sorting...");
 
-                var sortedCollection = ServerListCollection.ToList();
-                sortedCollection.Sort(delegate (DtoGameServer a, DtoGameServer b)
-                {
-                    if (a.IsStarred)
-                    {
-                        return -1;
-                    }
-                    if (b.IsStarred)
-                        return 1;
+                var starred = ServerListCollection.Where(_server => _server.IsStarred).ToList();
+                var unstarred = ServerListCollection.Where(_server => !_server.IsStarred).ToList();
 
+                starred.Sort(delegate (DtoGameServer a, DtoGameServer b)
+                {
                     return b.NumPlayers.CompareTo(a.NumPlayers);
                 });
 
-                ServerListCollection = new ObservableCollection<DtoGameServer>(sortedCollection);
+                unstarred.Sort(delegate (DtoGameServer a, DtoGameServer b)
+                {
+                    return b.NumPlayers.CompareTo(a.NumPlayers);
+                });
+
+                ServerListCollection = new ObservableCollection<DtoGameServer>(starred.Concat(unstarred));
                 ServerList.ItemsSource = ServerListCollection;
                 ServerList.Items.Refresh();
             });
@@ -735,7 +644,18 @@ namespace ClientLauncher
 
                     // Evaluate if the server is starred
                     if (StorageService.StarredServers.Contains($"{server.IP}:{server.Port}"))
+                    {
                         server.IsStarred = true;
+                    }
+                    else
+                    {
+                        // See if starred servers contains the hostname part of this.
+                        if (StorageService.StarredServers.Contains(server.IP))
+                        {
+                            server.IsStarred = true;
+                        }
+                    }
+
 
                     // Evaluate the ping
                     Task.Run(() =>
@@ -1542,7 +1462,11 @@ namespace ClientLauncher
             // Try to copy the account and product token
             if (EOSManager.User != null)
             {
-                Clipboard.SetText($"account_id: {EOSManager.User.AccountId}\nproduct_id: {EOSManager.User.ProductId}");
+                try
+                {
+                    Clipboard.SetText($"account_id: {EOSManager.User.AccountId}\nproduct_id: {EOSManager.User.ProductId}");
+                }
+                catch { }
             }
         }
     }

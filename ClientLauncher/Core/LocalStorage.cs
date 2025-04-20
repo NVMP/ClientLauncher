@@ -14,7 +14,7 @@ namespace ClientLauncher.Core
 {
     public class LocalStorage
     {
-        private static readonly int    InternalStorageRevision = 2;
+        private static readonly int    InternalStorageRevision = 3;
         private static readonly string InternalAppDataFolder = "NewVegasMultiplayer";
         private static readonly string InternalDataFilename = "newvegasmp.config";
 
@@ -23,7 +23,7 @@ namespace ClientLauncher.Core
 
         private static List<string> TrustedDefaultServers = new List<string>
         {
-            "murica-east.nv-mp.com:27017"
+            "murica-east.nv-mp.com"
         };
 
         [XmlRoot("dictionary")]
