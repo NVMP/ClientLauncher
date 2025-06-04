@@ -119,7 +119,7 @@ namespace ClientLauncher
                         {
                             // Warn them, and then restart the process
                             MessageBox.Show("The supplied path does not contain a valid Fallout: New Vegas installation.\n\nPlease select a folder that contains FalloutNV.exe!",
-                                "New Vegas: Multiplayer",
+                                "NV: Multiplayer",
                                MessageBoxButtons.OK, MessageBoxIcon.Error);
                             continue;
                         }

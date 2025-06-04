@@ -70,7 +70,7 @@ namespace ClientLauncher.Core.XNative
 
             } catch (Exception e)
             {
-                MessageBox.Show("Could not pre-patch executable, the temporary path query failed!\n\nDetails: \n" + e.Message, "New Vegas: Multiplayer");
+                MessageBox.Show("Could not pre-patch executable, the temporary path query failed!\n\nDetails: \n" + e.Message, "NV: Multiplayer");
                 return false;
             }
 
@@ -92,7 +92,7 @@ namespace ClientLauncher.Core.XNative
                 } catch (Exception _e)
                 {
                     MessageBox.Show($"Could not pre-patch executable, copying process to {FileNameTemp} from {CurrentProcessPath} failed (temp path also failed)!\n\nDetails: \n" + e.Message + "\n\n" + _e.Message,
-                        "New Vegas: Multiplayer");
+                        "NV: Multiplayer");
                 }
             }
 
@@ -112,7 +112,7 @@ namespace ClientLauncher.Core.XNative
             catch (Exception e)
             {
                 MessageBox.Show($"Could not pre-patch executable, starting new process {FileNameTemp} failed!\n\nDetails: \n" + e.Message,
-                    "New Vegas: Multiplayer");
+                    "NV: Multiplayer");
                 return false;
             }
 
@@ -123,7 +123,7 @@ namespace ClientLauncher.Core.XNative
             catch (Exception e)
             {
                 MessageBox.Show($"Could not pre-patch executable, killing current process failed!\n\nDetails: \n" + e.Message,
-                    "New Vegas: Multiplayer");
+                    "NV: Multiplayer");
                 return false;
             }
 
@@ -331,7 +331,7 @@ namespace ClientLauncher.Core.XNative
                     }
                     catch (Exception e)
                     {
-                        MessageBox.Show($"During installation, a start menu entry failed to be created.\n\n{e}", "New Vegas: Multiplayer", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        MessageBox.Show($"During installation, a start menu entry failed to be created.\n\n{e}", "NV: Multiplayer", MessageBoxButton.OK, MessageBoxImage.Warning);
                     }
 
                     SetModalStatus(Windows.PatchDisplay.EPatchStatus.kPatchStatus_Restarting);

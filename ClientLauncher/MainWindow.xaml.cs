@@ -262,7 +262,7 @@ namespace ClientLauncher
             if (ProgramVersion.IsOutOfDate)
             {
                 var result = MessageBox.Show($"NV:MP ({ProgramVersion.CurrentVersion}) is out of date. Please update NV:MP via the Nexus mod page to version {ProgramVersion.LatestRelease.tag_name}, or through your mod manager.\n\nAlternatively, you can download the latest PTC via GitHub\nWould you like to do this now?"
-                    , "New Vegas: Multiplayer", MessageBoxButton.OKCancel, MessageBoxImage.Exclamation);
+                    , "NV: Multiplayer", MessageBoxButton.OKCancel, MessageBoxImage.Exclamation);
 
                 if (result == MessageBoxResult.OK)
                 {
@@ -334,7 +334,7 @@ namespace ClientLauncher
 
             if (!b_EOSInitialized)
             {
-                MessageBox.Show($"Epic Online Services platform failed to initialize due to a configuration or installation error. ", "New Vegas: Multiplayer");
+                MessageBox.Show($"Epic Online Services platform failed to initialize due to a configuration or installation error. ", "NV: Multiplayer");
                 Close();
                 return;
             }
@@ -1109,7 +1109,7 @@ namespace ClientLauncher
                                 default: break;
                             }
 
-                            MessageBox.Show($"Could not connect to {server.IP}:{server.Port} [{msg}]", "New Vegas: Multiplayer", MessageBoxButton.OK, MessageBoxImage.Exclamation);
+                            MessageBox.Show($"Could not connect to {server.IP}:{server.Port} [{msg}]", "NV: Multiplayer", MessageBoxButton.OK, MessageBoxImage.Exclamation);
                             return false;
                         }
 
@@ -1441,19 +1441,8 @@ namespace ClientLauncher
             // Logs out
             EOSManager.LogoutFromPersistent((IEOSLoginResult result) =>
             {
-                // Show the authentication window, if the window closes and the authentication still is not met - then close the program as an implicit
-                // closure of the program.
-                var eosAuthenticationWindow = new Windows.EOSAuthenticate(this, hasLoggedOut: true);
-                eosAuthenticationWindow.ShowDialog();
-
-                if (EOSManager.User == null)
-                {
-                    Close();
-                    return;
-                }
-
-                Show();
-                Activate();
+                // Kill the process. EOS has an issue where it can't recover internally after logging out.
+                Application.Current.Shutdown();
             });
         }
 

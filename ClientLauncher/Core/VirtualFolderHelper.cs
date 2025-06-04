@@ -165,7 +165,7 @@ namespace ClientLauncher.Core
                 {
                     if (!UnmapAllVirtualFiles())
                     {
-                        MessageBox.Show("Unable to unmap previous server files from disk! The server may complain about invalid mod revisions.", "New Vegas: Multiplayer");
+                        MessageBox.Show("Unable to unmap previous server files from disk! The server may complain about invalid mod revisions.", "NV: Multiplayer");
                     }
                     File.WriteAllText(watermarkFile, UniqueFolderName);
                 }

@@ -47,7 +47,7 @@
         </Grid.ColumnDefinitions>
         <Image Name="NVMPLogo" Source="/Res/nvmp-sex.png" Grid.ColumnSpan="2" Margin="0,0,0,101"></Image>
         <TextBlock Visibility="Hidden" Name="BriefingLabel" Foreground="#FFF" Margin="30,15,30,0" TextWrapping="Wrap" Height="55"  VerticalAlignment="Top" Grid.ColumnSpan="2">
-            To play online with New Vegas: Multiplayer, you must authenticate with an Epic Games account, which will allow you to connect
+            To play online with NV: Multiplayer, you must authenticate with an Epic Games account, which will allow you to connect
             to authorize with other servers.
         </TextBlock>
         <Button Name="SignIn_Button" Margin="100,0,100,58" Style="{DynamicResource ButtonWhite}" VerticalAlignment="Bottom" Cursor="Hand" Click="Button_Click" Visibility="Hidden" Grid.ColumnSpan="2" Height="44">

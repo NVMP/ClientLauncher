@@ -414,7 +414,7 @@ namespace ClientLauncher.Core
                         }
                         catch (Exception)
                         {
-                            MessageBox.Show("Existing launcher settings were corrupted!", "New Vegas: Multiplayer");
+                            MessageBox.Show("Existing launcher settings were corrupted!", "NV: Multiplayer");
                         }
 
                         file.Close();

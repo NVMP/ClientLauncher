@@ -9,7 +9,7 @@
         xmlns:tb="http://www.hardcodet.net/taskbar"
         mc:Ignorable="d mc nexuscandidate mainbuild"
         DataContext="{Binding RelativeSource={RelativeSource Self}}"
-        Title="New Vegas: Multiplayer" Height="670" Width="1080" WindowStartupLocation="CenterScreen" ResizeMode="CanMinimize" Icon="/Res/nvmp-logo-32x32.png">
+        Title="NV: Multiplayer" Height="670" Width="1080" WindowStartupLocation="CenterScreen" ResizeMode="CanMinimize" Icon="/Res/nvmp-logo-32x32.png">
 
     <Window.Resources>
         <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
@@ -168,7 +168,7 @@
         </Grid.ColumnDefinitions>
 
         <tb:TaskbarIcon x:Name="NotifyIcon" 
-                        ToolTipText="New Vegas: Multiplayer"
+                        ToolTipText="NV: Multiplayer"
                         IconSource="Res/nvmp-logo-32x32.ico"
                         Visibility="Collapsed">
             <tb:TaskbarIcon.ContextMenu>
@@ -231,15 +231,15 @@
                                            />
                                         <Label Grid.Row="1" Background="Transparent" Foreground="White" 
                                            Content="{Binding SanitizedDescription}"
-                                           Margin="0 0 0 0"
+                                           Margin="0 0 0 5px"
                                            Padding="0"
                                            />
                                         <!-- state -->
                                         <Label Grid.Row="2" Visibility="{Binding StarredResourceVisibility}" Foreground="#b39339"
                                                FontWeight="Bold"
-                                               Margin="0 5px 0 0"
+                                               Margin="0 0 0 0"
                                                Padding="0">
-                                            Trusted Server
+                                            NV:MP Team Server
                                         </Label>
                                     </StackPanel>
                                 </Grid>
