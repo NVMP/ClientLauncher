@@ -465,37 +465,72 @@ namespace ClientLauncher
 #endif
             GameActivityMonitor?.Shutdown();
         }
+        private string ExtractLastUpdatedMarker(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+                return null;
 
+            // Look for a line starting with "Last updated:"
+            using (var reader = new StringReader(text))
+            {
+                string line = null;
+                while ((line = reader.ReadLine()) != null)
+                {
+                    var trimmed = line.Trim();
+                    if (trimmed.StartsWith("Last updated:", StringComparison.OrdinalIgnoreCase))
+                    {
+                        // Use the full line as the version marker
+                        return trimmed;
+                    }
+                }
+            }
+
+            // Fallback: use the entire text (old behavior)
+            return text;
+        }
         protected void CapturedAgreements(string tos, string privacy)
         {
             PushWindowBlur();
-            if (tos != null && tos != StorageService.LastTermsOfService)
+
+            // --- TERMS ---
+            if (tos != null)
             {
-                var tosWindow = new Windows.TOSDisplay(tos);
-                tosWindow.ShowDialog();
+                var tosMarker = ExtractLastUpdatedMarker(tos);
 
-                if (!tosWindow.IsAccepted)
+                if (tosMarker != StorageService.LastTermsOfService)
                 {
-                    Close();
-                    return;
-                }
+                    var tosWindow = new Windows.TOSDisplay(tos);
+                    tosWindow.ShowDialog();
 
-                StorageService.LastTermsOfService = tos;
+                    if (!tosWindow.IsAccepted)
+                    {
+                        Close();
+                        return;
+                    }
+
+                    StorageService.LastTermsOfService = tosMarker;
+                }
             }
 
-            if (privacy != null && privacy != StorageService.LastPrivacyPolicy)
+            // --- PRIVACY ---
+            if (privacy != null)
             {
-                var privacyWindow = new Windows.TOSDisplay(privacy);
-                privacyWindow.ShowDialog();
-                PopWindowBlur();
+                var privacyMarker = ExtractLastUpdatedMarker(privacy);
 
-                if (!privacyWindow.IsAccepted)
+                if (privacyMarker != StorageService.LastPrivacyPolicy)
                 {
-                    Close();
-                    return;
-                }
+                    var privacyWindow = new Windows.TOSDisplay(privacy);
+                    privacyWindow.ShowDialog();
+                    PopWindowBlur();
 
-                StorageService.LastPrivacyPolicy = privacy;
+                    if (!privacyWindow.IsAccepted)
+                    {
+                        Close();
+                        return;
+                    }
+
+                    StorageService.LastPrivacyPolicy = privacyMarker;
+                }
             }
 
             PopWindowBlur();
